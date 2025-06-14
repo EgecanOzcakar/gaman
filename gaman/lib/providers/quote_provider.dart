@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +12,7 @@ class Quote {
 
   factory Quote.fromJson(Map<String, dynamic> json) {
     return Quote(
-      text: json['content'] ?? '',
+      text: json['text'] ?? '',
       author: json['author'] ?? 'Unknown',
     );
   }
@@ -54,27 +55,50 @@ class QuoteProvider with ChangeNotifier {
 
   Future<void> fetchNewQuote() async {
     try {
-      final response = await http.get(
-        Uri.parse('https://api.quotable.io/random'),
+      // Create a custom HttpClient that bypasses certificate verification
+      final client = HttpClient()
+        ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      
+      // Create a request
+      final request = await client.getUrl(
+        Uri.parse('https://stoic-quotes.com/api/quote'),
       );
-
+      
+      // Get the response
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+      
       if (response.statusCode == 200) {
-        final quote = Quote.fromJson(json.decode(response.body));
+        final quote = Quote.fromJson(json.decode(responseBody));
         _currentQuote = quote;
         _lastUpdateDate = DateTime.now();
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_quoteKey, json.encode({
-          'content': quote.text,
+          'text': quote.text,
           'author': quote.author,
         }));
         await prefs.setString(_dateKey, _lastUpdateDate!.toIso8601String());
 
         notifyListeners();
+      } else {
+        debugPrint('Failed to fetch quote: ${response.statusCode}');
+        _setFallbackQuote();
       }
+      
+      client.close();
     } catch (e) {
       debugPrint('Error fetching quote: $e');
-      // If fetch fails, keep the existing quote
+      _setFallbackQuote();
     }
+  }
+
+  void _setFallbackQuote() {
+    _currentQuote = Quote(
+      text: "The happiness of your life depends upon the quality of your thoughts.",
+      author: "Marcus Aurelius",
+    );
+    _lastUpdateDate = DateTime.now();
+    notifyListeners();
   }
 } 
