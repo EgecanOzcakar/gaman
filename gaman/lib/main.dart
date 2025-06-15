@@ -73,92 +73,44 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF6B4EFF),
+                seedColor: const Color(0xFF2C3E50), // More professional dark blue
                 brightness: Brightness.light,
               ),
-              // textTheme: GoogleFonts.poppinsTextTheme(),  // Commenting out until we have fonts
               appBarTheme: const AppBarTheme(
                 centerTitle: true,
                 elevation: 0,
+                backgroundColor: Colors.transparent,
+                foregroundColor: Color(0xFF2C3E50),
+              ),
+              cardTheme: const CardThemeData(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
               ),
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF6B4EFF),
+                seedColor: const Color(0xFF2C3E50),
                 brightness: Brightness.dark,
               ),
-              // textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),  // Commenting out until we have fonts
               appBarTheme: const AppBarTheme(
                 centerTitle: true,
                 elevation: 0,
+                backgroundColor: Colors.transparent,
+              ),
+              cardTheme: const CardThemeData(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
               ),
             ),
             themeMode: themeProvider.themeMode,
-            home: const MainScreen(),
+            home: const HomeScreen(), // Directly use HomeScreen instead of MainScreen
           );
         },
-      ),
-    );
-  }
-}
-
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
-
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const MeditationScreen(),
-    const JournalScreen(),
-    const BinauralBeatsScreen(),
-    const FocusScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.self_improvement_outlined),
-            selectedIcon: Icon(Icons.self_improvement),
-            label: 'Meditate',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.book_outlined),
-            selectedIcon: Icon(Icons.book),
-            label: 'Journal',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.waves_outlined),
-            selectedIcon: Icon(Icons.waves),
-            label: 'Binaural',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.timer_outlined),
-            selectedIcon: Icon(Icons.timer),
-            label: 'Focus',
-          ),
-        ],
       ),
     );
   }

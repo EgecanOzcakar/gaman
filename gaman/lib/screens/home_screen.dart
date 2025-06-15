@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/quote_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/notification_provider.dart';
@@ -18,6 +20,7 @@ class HomeScreen extends StatelessWidget {
         slivers: [
           SliverAppBar.large(
             title: const Text('Gaman'),
+            floating: true,
             actions: [
               IconButton(
                 icon: const Icon(Icons.brightness_6),
@@ -30,62 +33,11 @@ class HomeScreen extends StatelessWidget {
                   );
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.notifications),
-                onPressed: () {
-                  final notificationProvider =
-                      context.read<NotificationProvider>();
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Daily Reflection'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Notifications are currently ${notificationProvider.isEnabled ? 'enabled' : 'disabled'}',
-                          ),
-                          if (notificationProvider.scheduledTime != null)
-                            Text(
-                              'Next notification at: ${notificationProvider.scheduledTime!.format(context)}',
-                            ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            notificationProvider.toggleNotifications(
-                              !notificationProvider.isEnabled,
-                            );
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            notificationProvider.isEnabled
-                                ? 'Disable Notifications'
-                                : 'Enable Notifications',
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            notificationProvider.rescheduleNotification();
-                            Navigator.pop(context);
-                          },
-                          child: const Text('Reschedule'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Close'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ],
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -97,38 +49,117 @@ class HomeScreen extends StatelessWidget {
                           child: CircularProgressIndicator(),
                         );
                       }
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Daily Quote',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                quote.text,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '- ${quote.author}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              Theme.of(context).colorScheme.primary.withOpacity(0.05),
                             ],
                           ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Stack(
+                          children: [
+                            if (quote.authorImageUrl != null)
+                              Positioned.fill(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Opacity(
+                                    opacity: 0.1,
+                                    child: CachedNetworkImage(
+                                      imageUrl: quote.authorImageUrl!,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => const SizedBox(),
+                                      errorWidget: (context, url, error) => const SizedBox(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.format_quote,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 32,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Daily Quote',
+                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                            color: Theme.of(context).colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.share,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                      onPressed: () {
+                                        Share.share(
+                                          '${quote.text}\n\n- ${quote.author}\n\nShared from Gaman App',
+                                          subject: 'Daily Stoic Quote',
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  quote.text,
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    height: 1.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '- ${quote.author}',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontStyle: FontStyle.italic,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                    if (quote.authorImageUrl != null)
+                                      CircleAvatar(
+                                        radius: 16,
+                                        backgroundImage: CachedNetworkImageProvider(quote.authorImageUrl!),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   Text(
                     'Features',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   GridView.count(
@@ -141,7 +172,7 @@ class HomeScreen extends StatelessWidget {
                       _FeatureCard(
                         title: 'Meditation',
                         icon: Icons.self_improvement,
-                        color: Colors.blue,
+                        color: Theme.of(context).colorScheme.primary,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -152,7 +183,7 @@ class HomeScreen extends StatelessWidget {
                       _FeatureCard(
                         title: 'Journal',
                         icon: Icons.book,
-                        color: Colors.green,
+                        color: Theme.of(context).colorScheme.secondary,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -163,7 +194,7 @@ class HomeScreen extends StatelessWidget {
                       _FeatureCard(
                         title: 'Binaural Beats',
                         icon: Icons.waves,
-                        color: Colors.purple,
+                        color: Theme.of(context).colorScheme.tertiary,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -174,7 +205,7 @@ class HomeScreen extends StatelessWidget {
                       _FeatureCard(
                         title: 'Focus Timer',
                         icon: Icons.timer,
-                        color: Colors.orange,
+                        color: Theme.of(context).colorScheme.error,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -214,14 +245,14 @@ class _FeatureCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                color.withOpacity(0.7),
-                color,
+                color.withOpacity(0.1),
+                color.withOpacity(0.05),
               ],
             ),
           ),
@@ -230,14 +261,15 @@ class _FeatureCard extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 48,
-                color: Colors.white,
+                size: 40,
+                color: color,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: color,
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
