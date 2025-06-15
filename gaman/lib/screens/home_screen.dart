@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/quote_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/notification_provider.dart';
@@ -65,41 +67,87 @@ class HomeScreen extends StatelessWidget {
                             width: 1,
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Stack(
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.format_quote,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  size: 32,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Daily Quote',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
+                            if (quote.authorImageUrl != null)
+                              Positioned.fill(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Opacity(
+                                    opacity: 0.1,
+                                    child: CachedNetworkImage(
+                                      imageUrl: quote.authorImageUrl!,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => const SizedBox(),
+                                      errorWidget: (context, url, error) => const SizedBox(),
+                                    ),
                                   ),
                                 ),
+                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.format_quote,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: 32,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Daily Quote',
+                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                            color: Theme.of(context).colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.share,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                      onPressed: () {
+                                        Share.share(
+                                          '${quote.text}\n\n- ${quote.author}\n\nShared from Gaman App',
+                                          subject: 'Daily Stoic Quote',
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  quote.text,
+                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    height: 1.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '- ${quote.author}',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontStyle: FontStyle.italic,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ),
+                                    if (quote.authorImageUrl != null)
+                                      CircleAvatar(
+                                        radius: 16,
+                                        backgroundImage: CachedNetworkImageProvider(quote.authorImageUrl!),
+                                      ),
+                                  ],
+                                ),
                               ],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              quote.text,
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                height: 1.5,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              '- ${quote.author}',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontStyle: FontStyle.italic,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
                             ),
                           ],
                         ),
