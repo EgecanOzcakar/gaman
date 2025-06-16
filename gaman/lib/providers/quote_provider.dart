@@ -105,21 +105,12 @@ class QuoteProvider with ChangeNotifier {
 
   Future<void> fetchNewQuote() async {
     try {
-      // Create a custom HttpClient that bypasses certificate verification
-      final client = HttpClient()
-        ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-      
-      // Create a request
-      final request = await client.getUrl(
+      final response = await http.get(
         Uri.parse('https://stoic-quotes.com/api/quote'),
-      );
-      
-      // Get the response
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
+      ).timeout(const Duration(seconds: 5));
       
       if (response.statusCode == 200) {
-        final quote = Quote.fromJson(json.decode(responseBody));
+        final quote = Quote.fromJson(json.decode(response.body));
         _currentQuote = quote;
         _lastUpdateDate = DateTime.now();
 
@@ -135,8 +126,9 @@ class QuoteProvider with ChangeNotifier {
         debugPrint('Failed to fetch quote: ${response.statusCode}');
         _setFallbackQuote();
       }
-      
-      client.close();
+    } on http.ClientException catch (e) {
+      debugPrint('Network error fetching quote: $e');
+      _setFallbackQuote();
     } catch (e) {
       debugPrint('Error fetching quote: $e');
       _setFallbackQuote();

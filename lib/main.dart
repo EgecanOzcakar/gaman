@@ -7,54 +7,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 // Import screens
+import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/meditation_screen.dart';
 import 'screens/journal_screen.dart';
 import 'screens/binaural_beats_screen.dart';
 import 'screens/focus_screen.dart';
-import 'screens/splash_screen.dart';
 
 // Import providers
 import 'providers/quote_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize notifications
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  final DarwinInitializationSettings initializationSettingsIOS =
-      DarwinInitializationSettings(
-    requestAlertPermission: true,
-    requestBadgePermission: true,
-    requestSoundPermission: true,
-  );
-  final InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsIOS,
-  );
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-  // Initialize WorkManager for background tasks
-  await Workmanager().initialize(callbackDispatcher);
-  
-  // Request necessary permissions
-  await Permission.notification.request();
-  
-  runApp(const MyApp());
-}
-
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    // Handle background tasks here
-    return Future.value(true);
-  });
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -69,31 +32,57 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
+          // Define our duck egg blue color palette
+          const duckEggBlue = Color(0xFF8FB3B3);
+          const darkDuckEggBlue = Color(0xFF6B8A8A);
+          const lightDuckEggBlue = Color(0xFFB3D9D9);
+          const accentColor = Color(0xFF2C3E50);
+
           return MaterialApp(
             title: 'Gaman',
             theme: ThemeData(
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF2C3E50), // More professional dark blue
+                seedColor: duckEggBlue,
+                primary: duckEggBlue,
+                secondary: accentColor,
+                tertiary: lightDuckEggBlue,
+                surface: Colors.white,
+                background: Colors.white,
                 brightness: Brightness.light,
               ),
-              appBarTheme: const AppBarTheme(
+              appBarTheme: AppBarTheme(
                 centerTitle: true,
                 elevation: 0,
                 backgroundColor: Colors.transparent,
-                foregroundColor: Color(0xFF2C3E50),
+                foregroundColor: accentColor,
+                iconTheme: IconThemeData(color: accentColor),
               ),
-              cardTheme: const CardThemeData(
+              cardTheme: CardTheme(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                color: Colors.white,
+                surfaceTintColor: duckEggBlue.withOpacity(0.1),
+              ),
+              dividerTheme: DividerThemeData(
+                color: duckEggBlue.withOpacity(0.2),
+                thickness: 1,
+              ),
+              iconTheme: IconThemeData(
+                color: accentColor,
               ),
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF2C3E50),
+                seedColor: duckEggBlue,
+                primary: duckEggBlue,
+                secondary: accentColor,
+                tertiary: darkDuckEggBlue,
+                surface: const Color(0xFF1A1A1A),
+                background: const Color(0xFF121212),
                 brightness: Brightness.dark,
               ),
               appBarTheme: const AppBarTheme(
@@ -101,11 +90,20 @@ class MyApp extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: Colors.transparent,
               ),
-              cardTheme: const CardThemeData(
+              cardTheme: CardTheme(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                color: const Color(0xFF1A1A1A),
+                surfaceTintColor: duckEggBlue.withOpacity(0.1),
+              ),
+              dividerTheme: DividerThemeData(
+                color: duckEggBlue.withOpacity(0.2),
+                thickness: 1,
+              ),
+              iconTheme: IconThemeData(
+                color: duckEggBlue,
               ),
             ),
             themeMode: themeProvider.themeMode,
@@ -115,4 +113,4 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-}
+} 
