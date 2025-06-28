@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/quote_provider.dart';
+import '../widgets/persistent_audio_control.dart';
 
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
@@ -126,77 +127,88 @@ class _FocusScreenState extends State<FocusScreen> {
       appBar: AppBar(
         title: const Text('Focus Timer'),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _isBreak ? 'Break Time' : 'Focus Time',
-                    style: Theme.of(context).textTheme.headlineMedium,
+          Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isBreak ? 'Break Time' : 'Focus Time',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        _formatTime(_remainingSeconds),
+                        style: Theme.of(context).textTheme.displayLarge,
+                      ),
+                      const SizedBox(height: 24),
+                      if (!_isPlaying) ...[
+                        Text(
+                          'Choose Duration',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _pomodoroDurations.map((minutes) {
+                            return ChoiceChip(
+                              label: Text('${minutes}m'),
+                              selected: _selectedDuration == minutes,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  setState(() {
+                                    _selectedDuration = minutes;
+                                    _remainingSeconds = minutes * 60;
+                                  });
+                                  _saveSettings();
+                                }
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      Text(
+                        'Completed Pomodoros: $_completedPomodoros',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    _formatTime(_remainingSeconds),
-                    style: Theme.of(context).textTheme.displayLarge,
-                  ),
-                  const SizedBox(height: 24),
-                  if (!_isPlaying) ...[
-                    Text(
-                      'Choose Duration',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _pomodoroDurations.map((minutes) {
-                        return ChoiceChip(
-                          label: Text('${minutes}m'),
-                          selected: _selectedDuration == minutes,
-                          onSelected: (selected) {
-                            if (selected) {
-                              setState(() {
-                                _selectedDuration = minutes;
-                                _remainingSeconds = minutes * 60;
-                              });
-                              _saveSettings();
-                            }
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  Text(
-                    'Completed Pomodoros: $_completedPomodoros',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_isPlaying)
+                      ElevatedButton.icon(
+                        onPressed: _startTimer,
+                        icon: const Icon(Icons.stop),
+                        label: const Text('Stop'),
+                      )
+                    else
+                      ElevatedButton.icon(
+                        onPressed: _startTimer,
+                        icon: const Icon(Icons.play_arrow),
+                        label: Text(_isBreak ? 'Start Break' : 'Start Focus'),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_isPlaying)
-                  ElevatedButton.icon(
-                    onPressed: _startTimer,
-                    icon: const Icon(Icons.stop),
-                    label: const Text('Stop'),
-                  )
-                else
-                  ElevatedButton.icon(
-                    onPressed: _startTimer,
-                    icon: const Icon(Icons.play_arrow),
-                    label: Text(_isBreak ? 'Start Break' : 'Start Focus'),
-                  ),
-              ],
-            ),
+          // Persistent Audio Control at the bottom
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: PersistentAudioControl(),
           ),
         ],
       ),

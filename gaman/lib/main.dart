@@ -19,6 +19,7 @@ import 'screens/splash_screen.dart';
 import 'providers/quote_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/audio_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,11 +70,14 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AudioProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'Gaman',
+            // Web-specific optimizations
+            debugShowCheckedModeBanner: false,
             theme: ThemeData(
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(
@@ -92,6 +96,9 @@ class MyApp extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
               ),
+              // Optimize for web performance
+              splashFactory: kIsWeb ? NoSplash.splashFactory : null,
+              highlightColor: kIsWeb ? Colors.transparent : null,
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
@@ -110,6 +117,9 @@ class MyApp extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
               ),
+              // Optimize for web performance
+              splashFactory: kIsWeb ? NoSplash.splashFactory : null,
+              highlightColor: kIsWeb ? Colors.transparent : null,
             ),
             themeMode: themeProvider.themeMode,
             home: const SplashScreen(), // Changed from HomeScreen to SplashScreen
