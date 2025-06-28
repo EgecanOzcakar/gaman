@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class BinauralBeat {
   final String name;
@@ -28,6 +30,8 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
   BinauralBeat? _selectedBeat;
   bool _isPlaying = false;
   double _volume = 0.5;
+  Timer? _volumeSaveTimer; // For debouncing volume saves
+  final Map<String, AudioSource?> _preloadedAudio = {}; // Cache for audio sources
 
   final List<BinauralBeat> _beats = [
     const BinauralBeat(
@@ -66,6 +70,7 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
   void initState() {
     super.initState();
     _loadVolume();
+    _preloadAudioAssets(); // Preload audio for better performance
     _audioPlayer.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
         setState(() => _isPlaying = false);
@@ -75,6 +80,7 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
 
   @override
   void dispose() {
+    _volumeSaveTimer?.cancel();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -88,39 +94,70 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
   }
 
   Future<void> _saveVolume() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('binaural_volume', _volume);
+    _volumeSaveTimer?.cancel();
+    _volumeSaveTimer = Timer(const Duration(milliseconds: 500), () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('binaural_volume', _volume);
+    });
+  }
+
+  Future<void> _preloadAudioAssets() async {
+    // Preload audio assets for better performance on web
+    if (kIsWeb) {
+      for (final beat in _beats) {
+        try {
+          _preloadedAudio[beat.audioAsset] = AudioSource.asset(beat.audioAsset);
+        } catch (e) {
+          debugPrint('Failed to preload ${beat.audioAsset}: $e');
+        }
+      }
+    }
   }
 
   Future<void> _playBeat(BinauralBeat beat) async {
+    // Immediate UI feedback for better responsiveness
     if (_selectedBeat == beat && _isPlaying) {
-      await _audioPlayer.pause();
       setState(() => _isPlaying = false);
+      await _audioPlayer.pause();
       return;
     }
-
+    
+    if (_selectedBeat == beat && !_isPlaying) {
+      setState(() => _isPlaying = true);
+      await _audioPlayer.play();
+      return;
+    }
+    
     if (_selectedBeat != beat) {
-      await _audioPlayer.stop();
+      // Immediate UI feedback
+      setState(() {
+        _selectedBeat = beat;
+        _isPlaying = true;
+      });
+      
+      // Stop current audio if playing
+      if (_isPlaying) {
+        await _audioPlayer.stop();
+      }
+      
       try {
-        await _audioPlayer.setAsset(beat.audioAsset);
+        // Use preloaded audio source if available
+        final audioSource = _preloadedAudio[beat.audioAsset] ?? AudioSource.asset(beat.audioAsset);
+        await _audioPlayer.setAudioSource(audioSource);
         _audioPlayer.setVolume(_volume);
         await _audioPlayer.play();
-        setState(() {
-          _selectedBeat = beat;
-          _isPlaying = true;
-        });
       } catch (e) {
         debugPrint('Error playing audio: $e');
+        setState(() => _isPlaying = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Failed to play audio. Please try again.'),
           ),
         );
       }
-    } else {
-      await _audioPlayer.play();
-      setState(() => _isPlaying = true);
     }
+
+    debugPrint('DEBUG: _playBeat - beat: ${beat.name}, isPlaying: $_isPlaying, selectedBeat: ${_selectedBeat?.name}');
   }
 
   @override
@@ -149,7 +186,7 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                         onChanged: (value) {
                           setState(() => _volume = value);
                           _audioPlayer.setVolume(value);
-                          _saveVolume();
+                          _saveVolume(); // Debounced save
                         },
                       ),
                     ),
@@ -192,7 +229,7 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                         ),
                         IconButton(
                           icon: Icon(
-                            isPlaying ? Icons.pause : Icons.play_arrow,
+                            isPlaying && isSelected ? Icons.pause : Icons.play_arrow,
                             color: isSelected
                                 ? Theme.of(context).colorScheme.primary
                                 : null,
