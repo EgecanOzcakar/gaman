@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../widgets/persistent_audio_control.dart';
 
 class JournalEntry {
   final String id;
@@ -144,68 +145,8 @@ class _JournalScreenState extends State<JournalScreen> {
     }
   }
 
-  void _showEntryDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New Journal Entry'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _contentController,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  hintText: 'How are you feeling today?',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please write something';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'How are you feeling?',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _moods.map((mood) {
-                  return ChoiceChip(
-                    label: Text(mood),
-                    selected: _selectedMood == mood,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() => _selectedMood = mood);
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              _saveEntry();
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
+  String _formatDate(DateTime date) {
+    return DateFormat.yMMMd().add_jm().format(date);
   }
 
   @override
@@ -214,76 +155,170 @@ class _JournalScreenState extends State<JournalScreen> {
       appBar: AppBar(
         title: const Text('Journal'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _entries.isEmpty
-              ? Center(
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _entries.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.book_outlined,
+                                  size: 64,
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No journal entries yet',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Start writing to reflect on your day',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _entries.length,
+                            itemBuilder: (context, index) {
+                              final entry = _entries[index];
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(16),
+                                  title: Row(
+                                    children: [
+                                      Text(
+                                        entry.mood,
+                                        style: const TextStyle(fontSize: 24),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              entry.content,
+                                              style: Theme.of(context).textTheme.bodyLarge,
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              _formatDate(entry.date),
+                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    onPressed: () => _deleteEntry(entry),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                    ),
+                  ),
+                ),
+                child: Form(
+                  key: _formKey,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'No entries yet',
-                        style: Theme.of(context).textTheme.titleLarge,
+                        'How are you feeling?',
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Start your journaling journey today',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                      Row(
+                        children: _moods.map((mood) {
+                          return GestureDetector(
+                            onTap: () => setState(() => _selectedMood = mood),
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: _selectedMood == mood
+                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: _selectedMood == mood
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Text(
+                                mood,
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _contentController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          hintText: 'Write about your day...',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please write something';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _saveEntry,
+                          child: const Text('Save Entry'),
+                        ),
                       ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _entries.length,
-                  itemBuilder: (context, index) {
-                    final entry = _entries[index];
-                    return Dismissible(
-                      key: Key(entry.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 16),
-                        color: Colors.red,
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      onDismissed: (_) => _deleteEntry(entry),
-                      child: Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    DateFormat.yMMMd().add_jm().format(entry.date),
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                  Text(
-                                    entry.mood,
-                                    style: Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                entry.content,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
                 ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showEntryDialog,
-        child: const Icon(Icons.add),
+              ),
+            ],
+          ),
+          // Persistent Audio Control at the bottom
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: PersistentAudioControl(),
+          ),
+        ],
       ),
     );
   }

@@ -1,20 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-class BinauralBeat {
-  final String name;
-  final String description;
-  final int frequency;
-  final String audioAsset;
-
-  const BinauralBeat({
-    required this.name,
-    required this.description,
-    required this.frequency,
-    required this.audioAsset,
-  });
-}
+import 'package:provider/provider.dart';
+import '../providers/audio_provider.dart';
+import '../widgets/persistent_audio_control.dart';
 
 class BinauralBeatsScreen extends StatefulWidget {
   const BinauralBeatsScreen({super.key});
@@ -24,194 +11,136 @@ class BinauralBeatsScreen extends StatefulWidget {
 }
 
 class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  BinauralBeat? _selectedBeat;
-  bool _isPlaying = false;
-  double _volume = 0.5;
-
-  final List<BinauralBeat> _beats = [
-    const BinauralBeat(
-      name: 'Deep Sleep',
-      description: 'Delta waves (0.5-4 Hz) for deep sleep and healing',
-      frequency: 2,
-      audioAsset: 'assets/audio/delta.mp3',
-    ),
-    const BinauralBeat(
-      name: 'Meditation',
-      description: 'Theta waves (4-8 Hz) for deep meditation and creativity',
-      frequency: 6,
-      audioAsset: 'assets/audio/theta.mp3',
-    ),
-    const BinauralBeat(
-      name: 'Focus',
-      description: 'Alpha waves (8-13 Hz) for focus and relaxation',
-      frequency: 10,
-      audioAsset: 'assets/audio/alpha.mp3',
-    ),
-    const BinauralBeat(
-      name: 'Energy',
-      description: 'Beta waves (13-30 Hz) for energy and concentration',
-      frequency: 20,
-      audioAsset: 'assets/audio/beta.mp3',
-    ),
-    const BinauralBeat(
-      name: 'Insight',
-      description: 'Gamma waves (30-100 Hz) for insight and high-level processing',
-      frequency: 40,
-      audioAsset: 'assets/audio/gamma.mp3',
-    ),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadVolume();
-    _audioPlayer.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.completed) {
-        setState(() => _isPlaying = false);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadVolume() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _volume = prefs.getDouble('binaural_volume') ?? 0.5;
-    });
-    _audioPlayer.setVolume(_volume);
-  }
-
-  Future<void> _saveVolume() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('binaural_volume', _volume);
-  }
-
-  Future<void> _playBeat(BinauralBeat beat) async {
-    if (_selectedBeat == beat && _isPlaying) {
-      await _audioPlayer.pause();
-      setState(() => _isPlaying = false);
-      return;
-    }
-
-    if (_selectedBeat != beat) {
-      await _audioPlayer.stop();
-      try {
-        await _audioPlayer.setAsset(beat.audioAsset);
-        _audioPlayer.setVolume(_volume);
-        await _audioPlayer.play();
-        setState(() {
-          _selectedBeat = beat;
-          _isPlaying = true;
-        });
-      } catch (e) {
-        debugPrint('Error playing audio: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to play audio. Please try again.'),
-          ),
-        );
-      }
-    } else {
-      await _audioPlayer.play();
-      setState(() => _isPlaying = true);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Binaural Beats'),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Volume',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.volume_down),
-                    Expanded(
-                      child: Slider(
-                        value: _volume,
-                        onChanged: (value) {
-                          setState(() => _volume = value);
-                          _audioPlayer.setVolume(value);
-                          _saveVolume();
-                        },
-                      ),
-                    ),
-                    const Icon(Icons.volume_up),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _beats.length,
-              itemBuilder: (context, index) {
-                final beat = _beats[index];
-                final isSelected = _selectedBeat == beat;
-                final isPlaying = isSelected && _isPlaying;
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    title: Row(
+          Consumer<AudioProvider>(
+            builder: (context, audioProvider, child) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                beat.name,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${beat.frequency} Hz',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
+                        Text(
+                          'Volume',
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
-                        IconButton(
-                          icon: Icon(
-                            isPlaying ? Icons.pause : Icons.play_arrow,
-                            color: isSelected
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                          ),
-                          onPressed: () => _playBeat(beat),
+                        Row(
+                          children: [
+                            const Icon(Icons.volume_down),
+                            Expanded(
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 4,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+                                  activeTrackColor: Theme.of(context).colorScheme.primary,
+                                  inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                  thumbColor: Theme.of(context).colorScheme.primary,
+                                  overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                ),
+                                child: Slider(
+                                  value: audioProvider.volume,
+                                  onChanged: (value) {
+                                    // Immediate feedback - no debouncing for UI
+                                    audioProvider.setVolume(value);
+                                  },
+                                  onChangeStart: (value) {
+                                    // Optional: Add haptic feedback or visual indicator
+                                  },
+                                  onChangeEnd: (value) {
+                                    // Optional: Add completion feedback
+                                  },
+                                  min: 0.0,
+                                  max: 1.0,
+                                  divisions: 20, // More granular control
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.volume_up),
+                          ],
                         ),
                       ],
                     ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(beat.description),
-                    ),
-                    selected: isSelected,
-                    selectedTileColor:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   ),
-                );
-              },
-            ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: audioProvider.beats.length,
+                      itemBuilder: (context, index) {
+                        final beat = audioProvider.beats[index];
+                        final isSelected = audioProvider.currentBeat == beat;
+                        final isPlaying = isSelected && audioProvider.isPlaying;
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(16),
+                            title: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        beat.name,
+                                        style: Theme.of(context).textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${beat.frequency} Hz',
+                                        style: Theme.of(context).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    // Immediate feedback
+                                    audioProvider.playBeat(beat);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Icon(
+                                      isPlaying && isSelected ? Icons.pause : Icons.play_arrow,
+                                      color: isSelected
+                                          ? Theme.of(context).colorScheme.primary
+                                          : null,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(beat.description),
+                            ),
+                            selected: isSelected,
+                            selectedTileColor:
+                                Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          // Persistent Audio Control at the bottom
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: PersistentAudioControl(),
           ),
         ],
       ),

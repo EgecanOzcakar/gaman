@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import '../widgets/persistent_audio_control.dart';
 
 class MeditationScreen extends StatefulWidget {
   const MeditationScreen({super.key});
@@ -104,87 +105,98 @@ class _MeditationScreenState extends State<MeditationScreen>
       appBar: AppBar(
         title: const Text('Meditation'),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Center(
-              child: AnimatedBuilder(
-                animation: _breathingAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _isBreathing ? _breathingAnimation.value : 1.0,
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
+          Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _breathingAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _isBreathing ? _breathingAnimation.value : 1.0,
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _isPlaying ? _formatTime(_remainingSeconds) : '00:00',
+                              style: Theme.of(context).textTheme.displayLarge,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          _isPlaying ? _formatTime(_remainingSeconds) : '00:00',
-                          style: Theme.of(context).textTheme.displayLarge,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                if (!_isPlaying) ...[
-                  Text(
-                    'Choose Duration',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _presetDurations.map((minutes) {
-                      return ElevatedButton(
-                        onPressed: () => _startTimer(minutes),
-                        child: Text('${minutes}m'),
                       );
-                    }).toList(),
+                    },
                   ),
-                ],
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                   children: [
-                    if (_isPlaying)
-                      ElevatedButton.icon(
-                        onPressed: _stopTimer,
-                        icon: const Icon(Icons.stop),
-                        label: const Text('Stop'),
+                    if (!_isPlaying) ...[
+                      Text(
+                        'Choose Duration',
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
-                    const SizedBox(width: 16),
-                    ElevatedButton.icon(
-                      onPressed: _toggleBreathing,
-                      icon: Icon(_isBreathing ? Icons.pause : Icons.play_arrow),
-                      label: Text(_isBreathing ? 'Stop Breathing' : 'Start Breathing'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isBreathing
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                        foregroundColor: _isBreathing
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : null,
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _presetDurations.map((minutes) {
+                          return ElevatedButton(
+                            onPressed: () => _startTimer(minutes),
+                            child: Text('${minutes}m'),
+                          );
+                        }).toList(),
                       ),
+                    ],
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isPlaying)
+                          ElevatedButton.icon(
+                            onPressed: _stopTimer,
+                            icon: const Icon(Icons.stop),
+                            label: const Text('Stop'),
+                          ),
+                        const SizedBox(width: 16),
+                        ElevatedButton.icon(
+                          onPressed: _toggleBreathing,
+                          icon: Icon(_isBreathing ? Icons.pause : Icons.play_arrow),
+                          label: Text(_isBreathing ? 'Stop Breathing' : 'Start Breathing'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _isBreathing
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                            foregroundColor: _isBreathing
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : null,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+          // Persistent Audio Control at the bottom
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: PersistentAudioControl(),
           ),
         ],
       ),
