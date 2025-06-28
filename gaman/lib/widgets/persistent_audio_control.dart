@@ -78,18 +78,29 @@ class PersistentAudioControl extends StatelessWidget {
                     width: 80,
                     child: SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        trackHeight: 2,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                        trackHeight: 3,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                        activeTrackColor: Theme.of(context).colorScheme.primary,
+                        inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                        thumbColor: Theme.of(context).colorScheme.primary,
+                        overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                       ),
                       child: Slider(
                         value: audioProvider.volume,
                         onChanged: (value) {
-                          // Immediate feedback
+                          // Immediate feedback - no debouncing for UI
                           audioProvider.setVolume(value);
+                        },
+                        onChangeStart: (value) {
+                          // Optional: Add haptic feedback or visual indicator
+                        },
+                        onChangeEnd: (value) {
+                          // Optional: Add completion feedback
                         },
                         min: 0.0,
                         max: 1.0,
+                        divisions: 20, // More granular control
                       ),
                     ),
                   ),

@@ -36,12 +36,32 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                           children: [
                             const Icon(Icons.volume_down),
                             Expanded(
-                              child: Slider(
-                                value: audioProvider.volume,
-                                onChanged: (value) {
-                                  // Immediate feedback
-                                  audioProvider.setVolume(value);
-                                },
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 4,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+                                  activeTrackColor: Theme.of(context).colorScheme.primary,
+                                  inactiveTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                  thumbColor: Theme.of(context).colorScheme.primary,
+                                  overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                ),
+                                child: Slider(
+                                  value: audioProvider.volume,
+                                  onChanged: (value) {
+                                    // Immediate feedback - no debouncing for UI
+                                    audioProvider.setVolume(value);
+                                  },
+                                  onChangeStart: (value) {
+                                    // Optional: Add haptic feedback or visual indicator
+                                  },
+                                  onChangeEnd: (value) {
+                                    // Optional: Add completion feedback
+                                  },
+                                  min: 0.0,
+                                  max: 1.0,
+                                  divisions: 20, // More granular control
+                                ),
                               ),
                             ),
                             const Icon(Icons.volume_up),

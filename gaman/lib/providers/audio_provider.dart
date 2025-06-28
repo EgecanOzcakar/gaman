@@ -175,11 +175,10 @@ class AudioProvider with ChangeNotifier {
   void setVolume(double volume) {
     _volume = volume;
     _audioPlayer.setVolume(volume);
+    // Always notify listeners for immediate UI feedback
+    notifyListeners();
+    // Debounce only the save operation
     _saveVolume();
-    // Only notify listeners if the volume actually changed significantly
-    if ((_volume - volume).abs() > 0.01) {
-      notifyListeners();
-    }
   }
 
   @override
