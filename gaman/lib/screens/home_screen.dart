@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 import '../providers/quote_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/notification_provider.dart';
@@ -10,9 +12,80 @@ import 'meditation_screen.dart';
 import 'journal_screen.dart';
 import 'binaural_beats_screen.dart';
 import 'focus_screen.dart';
+import 'todo_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _hasShownReminder = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndShowReminder();
+  }
+
+  Future<void> _checkAndShowReminder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final lastReminderDate = prefs.getString('last_todo_reminder_date');
+    
+    if (lastReminderDate != today && !_hasShownReminder) {
+      _hasShownReminder = true;
+      await prefs.setString('last_todo_reminder_date', today);
+      
+      // Show reminder after a short delay to ensure the screen is loaded
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted) {
+          _showTodoReminder();
+        }
+      });
+    }
+  }
+
+  void _showTodoReminder() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              Icons.task_alt,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            const Text('Set Your Daily Goals'),
+          ],
+        ),
+        content: const Text(
+          'Take a moment to set your "eat the frog" task and three smaller tasks for today. This will help you stay focused and productive!',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TodoScreen(),
+                ),
+              );
+            },
+            child: const Text('Set Goals Now'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,9 +241,10 @@ class HomeScreen extends StatelessWidget {
                       GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
+                        crossAxisCount: 3,
                         mainAxisSpacing: 16,
                         crossAxisSpacing: 16,
+                        childAspectRatio: 0.8,
                         children: [
                           _FeatureCard(
                             title: 'Meditation',
@@ -216,6 +290,17 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ),
                           ),
+                          _FeatureCard(
+                            title: 'Todo Goals',
+                            icon: Icons.task_alt,
+                            color: Theme.of(context).colorScheme.primary,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const TodoScreen(),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -257,7 +342,7 @@ class _FeatureCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -273,17 +358,19 @@ class _FeatureCard extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 40,
+                size: 32,
                 color: color,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: color,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
