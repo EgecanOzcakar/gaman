@@ -40,7 +40,7 @@ jobs:
         run: cd gaman && flutter pub get
         
       - name: Build web app
-        run: cd gaman && flutter build web --release
+        run: cd gaman && flutter build web --release --base-href "/gaman-1/"
         
       - name: Setup Pages
         uses: actions/configure-pages@v5
