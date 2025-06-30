@@ -374,119 +374,140 @@ class _TodoScreenState extends State<TodoScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Main "Eat the Frog" Task
-                Text(
-                  '🐸 Eat the Frog',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  elevation: 2,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    title: TextField(
-                      controller: _mainTaskController,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        decoration: mainTask.isCompleted ? TextDecoration.lineThrough : null,
-                        color: mainTask.isCompleted 
-                            ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
-                            : null,
-                      ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'What\'s your most important task today?',
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                      onChanged: (value) => _updateTaskTitle(mainTask, value),
-                    ),
-                    trailing: Checkbox(
-                      value: mainTask.isCompleted,
-                      onChanged: (_) => _toggleTask(mainTask),
+          // Scrollable content area
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Main "Eat the Frog" Task
+                  Text(
+                    '🐸 Eat the Frog',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Cruise Tasks Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '... and Cruise',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: _addCruiseTask,
-                      tooltip: 'Add task',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                
-                // Cruise Tasks
-                ...cruiseTasks.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final task = entry.value;
-                  final controller = index < _cruiseTaskControllers.length 
-                      ? _cruiseTaskControllers[index] 
-                      : TextEditingController();
-                  
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 2,
                     child: ListTile(
-                      contentPadding: const EdgeInsets.all(12),
+                      contentPadding: const EdgeInsets.all(16),
                       title: TextField(
-                        controller: controller,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-                          color: task.isCompleted 
+                        controller: _mainTaskController,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          decoration: mainTask.isCompleted ? TextDecoration.lineThrough : null,
+                          color: mainTask.isCompleted 
                               ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
                               : null,
                         ),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           border: InputBorder.none,
-                          hintText: 'Small task ${index + 1}',
-                          hintStyle: const TextStyle(color: Colors.grey),
+                          hintText: 'What\'s your most important task today?',
+                          hintStyle: TextStyle(color: Colors.grey),
                         ),
-                        onChanged: (value) => _updateTaskTitle(task, value),
+                        onChanged: (value) => _updateTaskTitle(mainTask, value),
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                            value: task.isCompleted,
-                            onChanged: (_) => _toggleTask(task),
-                          ),
-                          if (cruiseTasks.length > 1)
-                            IconButton(
-                              icon: const Icon(Icons.remove, size: 20),
-                              onPressed: () => _removeCruiseTask(index),
-                              tooltip: 'Remove task',
-                            ),
-                        ],
+                      trailing: Checkbox(
+                        value: mainTask.isCompleted,
+                        onChanged: (_) => _toggleTask(mainTask),
                       ),
                     ),
-                  );
-                }).toList(),
-                
-                const Spacer(),
-                
-                // Progress indicator
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Cruise Tasks Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '... and Cruise',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: _addCruiseTask,
+                        tooltip: 'Add task',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Cruise Tasks
+                  ...cruiseTasks.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final task = entry.value;
+                    final controller = index < _cruiseTaskControllers.length 
+                        ? _cruiseTaskControllers[index] 
+                        : TextEditingController();
+                    
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(12),
+                        title: TextField(
+                          controller: controller,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                            color: task.isCompleted 
+                                ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                                : null,
+                          ),
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Small task ${index + 1}',
+                            hintStyle: const TextStyle(color: Colors.grey),
+                          ),
+                          onChanged: (value) => _updateTaskTitle(task, value),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Checkbox(
+                              value: task.isCompleted,
+                              onChanged: (_) => _toggleTask(task),
+                            ),
+                            if (cruiseTasks.length > 1)
+                              IconButton(
+                                icon: const Icon(Icons.remove, size: 20),
+                                onPressed: () => _removeCruiseTask(index),
+                                tooltip: 'Remove task',
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ),
+          
+          // Fixed progress bar at bottom
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                top: BorderSide(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 const Divider(),
                 const SizedBox(height: 16),
                 Row(
@@ -516,13 +537,9 @@ class _TodoScreenState extends State<TodoScreen> {
               ],
             ),
           ),
-          // Persistent Audio Control at the bottom
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: PersistentAudioControl(),
-          ),
+          
+          // Persistent Audio Control at the very bottom
+          const PersistentAudioControl(),
         ],
       ),
     );
