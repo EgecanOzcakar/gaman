@@ -13,6 +13,7 @@ import 'journal_screen.dart';
 import 'binaural_beats_screen.dart';
 import 'focus_screen.dart';
 import 'todo_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -106,6 +107,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         themeProvider.themeMode == ThemeMode.light
                             ? ThemeMode.dark
                             : ThemeMode.light,
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.settings),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
                       );
                     },
                   ),

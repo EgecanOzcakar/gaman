@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../widgets/persistent_audio_control.dart';
+import '../services/gemini_service.dart';
+import '../widgets/generate_tasks_dialog.dart';
+import 'settings_screen.dart';
 
 class TodoTask {
   final String id;
@@ -50,11 +53,32 @@ class _TodoScreenState extends State<TodoScreen> {
   final List<TodoTask> _tasks = [];
   final _mainTaskController = TextEditingController();
   final List<TextEditingController> _cruiseTaskControllers = [];
+  final GeminiService _geminiService = GeminiService();
+  bool _isGeneratingTasks = false;
+  bool _isAiConfigured = false;
 
   @override
   void initState() {
     super.initState();
     _loadTasks();
+    _checkAiConfiguration();
+  }
+
+  Future<void> _checkAiConfiguration() async {
+    try {
+      final isConfigured = await _geminiService.isConfigured();
+      if (mounted) {
+        setState(() {
+          _isAiConfigured = isConfigured;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isAiConfigured = false;
+        });
+      }
+    }
   }
 
   @override
@@ -188,6 +212,111 @@ class _TodoScreenState extends State<TodoScreen> {
     _saveTasks();
   }
 
+  Future<void> _generateTasksWithAI() async {
+    final isConfigured = await _geminiService.isConfigured();
+    if (!isConfigured) {
+      final shouldGoToSettings = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              const Text('AI Task Generation'),
+            ],
+          ),
+          content: const Text(
+            'To generate AI-powered tasks, you need to configure your Gemini API key first. Would you like to go to Settings to set it up?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Go to Settings'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldGoToSettings == true) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SettingsScreen(),
+          ),
+        );
+        // Check if AI is now configured after returning from settings
+        await _checkAiConfiguration();
+      }
+      return;
+    }
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => const GenerateTasksDialog(),
+    );
+
+    if (result == null) return;
+
+    setState(() {
+      _isGeneratingTasks = true;
+    });
+
+    try {
+      final generatedTasks = await _geminiService.generateTasks(
+        userRole: result['role']!,
+        currentFocus: result['focus']!,
+        timeOfDay: result['timeOfDay']!,
+      );
+
+      setState(() {
+        _tasks.clear();
+        
+        // Add main task
+        if (generatedTasks['main_task']!.isNotEmpty) {
+          _tasks.add(TodoTask(
+            id: 'main_${DateTime.now().millisecondsSinceEpoch}',
+            title: generatedTasks['main_task']!.first,
+            isMainTask: true,
+            createdAt: DateTime.now(),
+          ));
+        }
+
+        // Add cruise tasks
+        for (int i = 0; i < generatedTasks['cruise_tasks']!.length; i++) {
+          _tasks.add(TodoTask(
+            id: 'cruise_${i + 1}_${DateTime.now().millisecondsSinceEpoch}',
+            title: generatedTasks['cruise_tasks']![i],
+            isMainTask: false,
+            createdAt: DateTime.now(),
+          ));
+        }
+      });
+
+      _initializeControllers();
+      await _saveTasks();
+      _showSnackBar('Tasks generated successfully!');
+    } catch (e) {
+      _showSnackBar('Failed to generate tasks: $e');
+    } finally {
+      setState(() {
+        _isGeneratingTasks = false;
+      });
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mainTask = _tasks.firstWhere((task) => task.isMainTask, orElse: () => _tasks.first);
@@ -214,6 +343,36 @@ class _TodoScreenState extends State<TodoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Today\'s Goals'),
+        actions: [
+          IconButton(
+            icon: _isGeneratingTasks
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Stack(
+                    children: [
+                      const Icon(Icons.auto_awesome),
+                      if (_isAiConfigured)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+            onPressed: _isGeneratingTasks ? null : _generateTasksWithAI,
+            tooltip: _isAiConfigured ? 'Generate AI Tasks' : 'Configure AI (Settings)',
+          ),
+        ],
       ),
       body: Stack(
         children: [
