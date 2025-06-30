@@ -1,5 +1,5 @@
-# Sample workflow for building and deploying a Jekyll site to GitHub Pages
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+# Workflow for building and deploying Flutter web app to GitHub Pages
+name: Deploy Flutter Web to GitHub Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -28,15 +28,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+          
+      - name: Get dependencies
+        run: cd gaman && flutter pub get
+        
+      - name: Build web app
+        run: cd gaman && flutter build web --release
+        
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./
-          destination: ./_site
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: gaman/build/web
 
   # Deployment job
   deploy:
