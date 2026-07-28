@@ -7,19 +7,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+
+
 // Import screens
+import 'screens/mood_checkin_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/meditation_screen.dart';
 import 'screens/journal_screen.dart';
 import 'screens/binaural_beats_screen.dart';
 import 'screens/focus_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/write_letter_screen.dart';
 
 // Import providers
+import 'providers/mood_checkin_provider.dart';
 import 'providers/quote_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/audio_provider.dart';
+import 'providers/future_letter_provider.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,13 +79,21 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
+        ChangeNotifierProvider(create: (_) => MoodCheckinProvider(navigatorKey: navigatorKey)),
+        ChangeNotifierProvider(create: (_) => FutureLetterProvider()),
+
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'Gaman',
+            navigatorKey: navigatorKey,
+            routes: {
+              '/mood-checkin': (context) => const MoodCheckinScreen(),
+              '/write-letter': (context) => const WriteLetterScreen(),
+            },
             // Web-specific optimizations
-            debugShowCheckedModeBanner: false,
+            debugShowCheckedModeBanner: false,  
             theme: ThemeData(
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(

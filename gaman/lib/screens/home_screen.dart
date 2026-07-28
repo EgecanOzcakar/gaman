@@ -14,6 +14,9 @@ import 'binaural_beats_screen.dart';
 import 'focus_screen.dart';
 import 'todo_screen.dart';
 import 'settings_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/future_letter_provider.dart';
+import 'letter_reveal_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,13 +25,35 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+
 class _HomeScreenState extends State<HomeScreen> {
   bool _hasShownReminder = false;
+  bool _hasCheckedLetter = false;
 
   @override
   void initState() {
     super.initState();
     _checkAndShowReminder();
+    _checkFutureLetter();
+  }
+
+  Future<void> _checkFutureLetter() async {
+    if (_hasCheckedLetter) return;
+    _hasCheckedLetter = true;
+
+    final letterProvider = context.read<FutureLetterProvider>();
+    final letter = letterProvider.checkDateTriggeredLetter();
+
+    if (letter != null) {
+      await letterProvider.markDelivered(letter.id);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => LetterRevealScreen(letter: letter)),
+          );
+        }
+      });
+    }
   }
 
   Future<void> _checkAndShowReminder() async {
