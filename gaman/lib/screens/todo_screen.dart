@@ -319,6 +319,15 @@ class _TodoScreenState extends State<TodoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_tasks.isEmpty) {
+      // Tasks are still loading asynchronously (SharedPreferences hasn't
+      // resolved yet). Show a lightweight loading state instead of crashing
+      // on _tasks.first below.
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final mainTask = _tasks.firstWhere((task) => task.isMainTask, orElse: () => _tasks.first);
     final cruiseTasks = _tasks.where((task) => !task.isMainTask).toList();
 
