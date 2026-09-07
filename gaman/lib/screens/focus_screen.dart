@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/persistent_audio_control.dart';
 import '../widgets/timer_ring.dart';
@@ -24,7 +26,9 @@ class _FocusScreenState extends State<FocusScreen> {
   final List<int> _pomodoroDurations = [15, 25, 30, 45, 60];
   final int _breakDuration = 5; // Short break duration in minutes
   final int _longBreakDuration = 15; // Long break duration in minutes
-  final int _pomodorosUntilLongBreak = 4;
+
+  int get _pomodorosUntilLongBreak =>
+      context.read<SettingsProvider>().longBreakEvery;
 
   @override
   void initState() {
@@ -40,8 +44,10 @@ class _FocusScreenState extends State<FocusScreen> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
-      _selectedDuration = prefs.getInt('pomodoro_duration') ?? 25;
+      _selectedDuration = prefs.getInt('pomodoro_duration') ??
+          context.read<SettingsProvider>().focusMinutes;
       _completedPomodoros = prefs.getInt('completed_pomodoros') ?? 0;
     });
   }
