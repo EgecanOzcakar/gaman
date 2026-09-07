@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/feature_prefs.dart';
 import '../providers/notification_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
@@ -255,49 +256,44 @@ class _Section extends StatelessWidget {
           padding: const EdgeInsets.only(left: Insets.xs, bottom: Insets.sm),
           child: Text(title, style: Theme.of(context).textTheme.titleLarge),
         ),
-        Card(child: child),
-      ],
     );
   }
 }
 
-class _StepperTile extends StatelessWidget {
-  const _StepperTile({
-    required this.label,
-    required this.value,
-    this.onMinus,
-    this.onPlus,
-  });
-
-  final String label;
-  final String value;
-  final VoidCallback? onMinus;
-  final VoidCallback? onPlus;
+class _PracticesCard extends StatelessWidget {
+  static const _labels = {
+    'meditation': 'Meditation',
+    'journal': 'Journal',
+    'binaural': 'Binaural Beats',
+    'focus': 'Focus Timer',
+    'todo': 'Daily Goals',
+  };
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(label),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            onPressed: onMinus,
-            icon: const Icon(Icons.remove_circle_outline),
-          ),
-          SizedBox(
-            width: 84,
-            child: Text(
-              value,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+    return Card(
+      child: Consumer<FeaturePrefs>(
+        builder: (context, prefs, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              child: Text(
+                'Practices on home',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: onPlus,
-            icon: const Icon(Icons.add_circle_outline),
-          ),
-        ],
+            for (final id in FeaturePrefs.ids)
+              SwitchListTile(
+                title: Text(_labels[id]!),
+                value: prefs.isEnabled(id),
+                onChanged: (v) => prefs.setEnabled(id, v),
+              ),
+          ],
+        ),
       ),
     );
   }
