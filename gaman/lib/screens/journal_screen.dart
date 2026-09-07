@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../journal_templates.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
+import 'journal_prompt_screen.dart';
 
 class JournalEntry {
   final String id;
@@ -15,11 +17,19 @@ class JournalEntry {
   final DateTime date;
   final String mood;
 
+  /// Template id: 'free', 'gratitude', 'evening', 'thought_record', 'woop'.
+  final String type;
+
+  /// For structured entries: label -> answer, in order. Null for free text.
+  final Map<String, String>? sections;
+
   JournalEntry({
     required this.id,
     required this.content,
     required this.date,
     required this.mood,
+    this.type = 'free',
+    this.sections,
   });
 
   Map<String, dynamic> toJson() => {
@@ -27,6 +37,8 @@ class JournalEntry {
         'content': content,
         'date': date.toIso8601String(),
         'mood': mood,
+        'type': type,
+        if (sections != null) 'sections': sections,
       };
 
   factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
@@ -34,6 +46,9 @@ class JournalEntry {
         content: json['content'],
         date: DateTime.parse(json['date']),
         mood: json['mood'],
+        type: json['type'] as String? ?? 'free',
+        sections: (json['sections'] as Map?)?.map(
+            (k, v) => MapEntry(k.toString(), v.toString())),
       );
 }
 
@@ -127,6 +142,22 @@ class _JournalScreenState extends State<JournalScreen> {
     }
   }
 
+  Future<void> _addFromPrompt(JournalTemplate template) async {
+    final entry = await Navigator.push<JournalEntry>(
+      context,
+      MaterialPageRoute(
+          builder: (_) => JournalPromptScreen(template: template)),
+    );
+    if (entry == null) return;
+    setState(() => _entries.insert(0, entry));
+    if (mounted) context.read<ActivityLog>().log(ActivityType.journal);
+    try {
+      await _persist();
+    } catch (e) {
+      debugPrint('Error saving entry: $e');
+    }
+  }
+
   Future<void> _deleteEntry(JournalEntry entry) async {
     setState(() => _entries.removeWhere((e) => e.id == entry.id));
     try {
@@ -150,6 +181,25 @@ class _JournalScreenState extends State<JournalScreen> {
         children: [
           Column(
             children: [
+              SizedBox(
+                height: 52,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Insets.md, vertical: Insets.sm),
+                  children: [
+                    for (final t in journalTemplates)
+                      Padding(
+                        padding: const EdgeInsets.only(right: Insets.sm),
+                        child: ActionChip(
+                          avatar: Icon(t.icon, size: 18),
+                          label: Text(t.title),
+                          onPressed: () => _addFromPrompt(t),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -202,6 +252,22 @@ class _JournalScreenState extends State<JournalScreen> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            if (templateById(entry.type) case final tpl?) ...[
+                                              Row(
+                                                children: [
+                                                  Icon(tpl.icon, size: 14,
+                                                      color: Theme.of(context).colorScheme.primary),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    tpl.title,
+                                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                                      color: Theme.of(context).colorScheme.primary,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                            ],
                                             Text(
                                               entry.content,
                                               style: Theme.of(context).textTheme.bodyLarge,
