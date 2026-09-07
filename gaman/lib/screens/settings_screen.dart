@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/data_export.dart';
 import '../services/gemini_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -80,11 +81,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        children: [
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -200,9 +199,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.download_outlined,
+                            color: Theme.of(context).colorScheme.secondary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Your data',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Everything is stored on this device. Export a copy you '
+                      'can keep somewhere safe or move to another phone.',
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          try {
+                            await exportAllData();
+                          } catch (e) {
+                            _showSnackBar('Could not export: $e');
+                          }
+                        },
+                        icon: const Icon(Icons.ios_share),
+                        label: const Text('Export all data'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
-      ),
     );
   }
-} 
+}
