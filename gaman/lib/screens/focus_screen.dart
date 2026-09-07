@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
-import '../widgets/persistent_audio_control.dart';
 import '../widgets/timer_ring.dart';
 
 class FocusScreen extends StatefulWidget {
@@ -150,9 +149,7 @@ class _FocusScreenState extends State<FocusScreen> {
       appBar: AppBar(
         title: const Text('Focus Timer'),
       ),
-      body: Stack(
-        children: [
-          Column(
+      body: Column(
             children: [
               Expanded(
                 child: Center(
@@ -225,15 +222,6 @@ class _FocusScreenState extends State<FocusScreen> {
                 ),
               ),
             ],
-          ),
-          // Persistent Audio Control at the bottom
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: PersistentAudioControl(),
-          ),
-        ],
       ),
     );
   }

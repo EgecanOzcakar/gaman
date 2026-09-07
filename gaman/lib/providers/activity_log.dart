@@ -105,20 +105,32 @@ class ActivityLog with ChangeNotifier {
     return streak;
   }
 
-  int countThisWeek(ActivityType type) {
-    final weekStart = DateUtils.dateOnly(
-        DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)));
-    return since(weekStart.subtract(const Duration(seconds: 1)))
-        .where((e) => e.type == type)
-        .length;
+  Iterable<ActivityEvent> inRange(DateTime from, DateTime to) =>
+      _events.where((e) => !e.at.isBefore(from) && e.at.isBefore(to));
+
+  int count(ActivityType type, DateTime from, DateTime to) =>
+      inRange(from, to).where((e) => e.type == type).length;
+
+  int minutes(ActivityType type, DateTime from, DateTime to) =>
+      inRange(from, to)
+          .where((e) => e.type == type)
+          .fold<int>(0, (sum, e) => sum + e.durationSeconds) ~/
+      60;
+
+  int activeDays(DateTime from, DateTime to) => inRange(from, to)
+      .map((e) => DateUtils.dateOnly(e.at))
+      .toSet()
+      .length;
+
+  /// Monday 00:00 of the week containing [day] (or this week).
+  static DateTime weekStart([DateTime? day]) {
+    final d = day ?? DateTime.now();
+    return DateUtils.dateOnly(d.subtract(Duration(days: d.weekday - 1)));
   }
 
-  int minutesThisWeek(ActivityType type) {
-    final weekStart = DateUtils.dateOnly(
-        DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)));
-    return since(weekStart.subtract(const Duration(seconds: 1)))
-            .where((e) => e.type == type)
-            .fold(0, (sum, e) => sum + e.durationSeconds) ~/
-        60;
-  }
+  int countThisWeek(ActivityType type) =>
+      count(type, weekStart(), DateTime.now().add(const Duration(days: 1)));
+
+  int minutesThisWeek(ActivityType type) =>
+      minutes(type, weekStart(), DateTime.now().add(const Duration(days: 1)));
 }

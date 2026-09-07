@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
-import '../widgets/persistent_audio_control.dart';
 
 class JournalEntry {
   final String id;
@@ -146,9 +145,7 @@ class _JournalScreenState extends State<JournalScreen> {
       appBar: AppBar(
         title: const Text('Journal'),
       ),
-      body: Stack(
-        children: [
-          Column(
+      body: Column(
             children: [
               Expanded(
                 child: _isLoading
@@ -309,16 +306,7 @@ class _JournalScreenState extends State<JournalScreen> {
                 ),
               ),
             ],
-          ),
-          // Persistent Audio Control at the bottom
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: PersistentAudioControl(),
-          ),
-        ],
       ),
     );
   }
-} 
+}

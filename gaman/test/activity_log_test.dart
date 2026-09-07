@@ -47,6 +47,19 @@ void main() {
     expect(log.minutesThisWeek(ActivityType.meditation), 15);
   });
 
+  test('count / activeDays over an explicit range', () async {
+    final log = ActivityLog();
+    await log.log(ActivityType.focus, at: daysAgo(1));
+    await log.log(ActivityType.focus, at: daysAgo(1)); // same day
+    await log.log(ActivityType.focus, at: daysAgo(2));
+    await log.log(ActivityType.focus, at: daysAgo(30)); // outside range
+
+    final from = ActivityLog.weekStart().subtract(const Duration(days: 7));
+    final to = DateTime.now().add(const Duration(days: 1));
+    expect(log.count(ActivityType.focus, from, to), 3);
+    expect(log.activeDays(from, to), 2);
+  });
+
   test('events survive a reload (JSON round-trip)', () async {
     final a = ActivityLog();
     await a.log(ActivityType.journal, meta: {'note': 'has, commas: and colons'});
