@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
@@ -65,32 +69,31 @@ class _JournalScreenState extends State<JournalScreen> {
     setState(() => _isLoading = true);
     try {
       final prefs = await SharedPreferences.getInstance();
-      final entriesJson = prefs.getStringList('journal_entries') ?? [];
+      final stored = prefs.getStringList('journal_entries') ?? [];
       setState(() {
-        _entries.clear();
-        _entries.addAll(
-          entriesJson
-              .map((e) => JournalEntry.fromJson(Map<String, dynamic>.from(
-                    Map<String, dynamic>.from(
-                      Map.castFrom<dynamic, dynamic, String, dynamic>(
-                        Map.fromEntries(
-                          e.split(',').map((e) {
-                            final parts = e.split(':');
-                            return MapEntry(parts[0], parts[1]);
-                          }),
-                        ),
-                      ),
-                    ),
-                  )))
-              .toList(),
-        );
-        _entries.sort((a, b) => b.date.compareTo(a.date));
+        _entries
+          ..clear()
+          ..addAll(stored.map((s) {
+            try {
+              return JournalEntry.fromJson(
+                  jsonDecode(s) as Map<String, dynamic>);
+            } catch (_) {
+              return null;
+            }
+          }).whereType<JournalEntry>())
+          ..sort((a, b) => b.date.compareTo(a.date));
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('Error loading entries: $e');
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _persist() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('journal_entries',
+        _entries.map((e) => jsonEncode(e.toJson())).toList());
   }
 
   Future<void> _saveEntry() async {
@@ -110,40 +113,26 @@ class _JournalScreenState extends State<JournalScreen> {
     _contentController.clear();
     _selectedMood = '😊';
 
+    context.read<ActivityLog>().log(ActivityType.journal);
+
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final entriesJson = _entries
-          .map((e) => e.toJson().entries
-              .map((e) => '${e.key}:${e.value}')
-              .join(','))
-          .toList();
-      await prefs.setStringList('journal_entries', entriesJson);
+      await _persist();
     } catch (e) {
       debugPrint('Error saving entry: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save entry')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not save the entry')),
+        );
+      }
     }
   }
 
   Future<void> _deleteEntry(JournalEntry entry) async {
-    setState(() {
-      _entries.removeWhere((e) => e.id == entry.id);
-    });
-
+    setState(() => _entries.removeWhere((e) => e.id == entry.id));
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final entriesJson = _entries
-          .map((e) => e.toJson().entries
-              .map((e) => '${e.key}:${e.value}')
-              .join(','))
-          .toList();
-      await prefs.setStringList('journal_entries', entriesJson);
+      await _persist();
     } catch (e) {
       debugPrint('Error deleting entry: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete entry')),
-      );
     }
   }
 

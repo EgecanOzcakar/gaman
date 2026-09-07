@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../widgets/persistent_audio_control.dart';
 import '../widgets/timer_ring.dart';
@@ -87,6 +89,10 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   void _handleTimerComplete() {
+    if (!_isBreak) {
+      context.read<ActivityLog>().log(ActivityType.focus,
+          durationSeconds: _selectedDuration * 60);
+    }
     setState(() {
       _isPlaying = false;
       if (!_isBreak) {

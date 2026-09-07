@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:provider/provider.dart';
+import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../widgets/persistent_audio_control.dart';
 
@@ -61,8 +63,11 @@ class _MeditationScreenState extends State<MeditationScreen>
     super.dispose();
   }
 
+  int _sessionSeconds = 0;
+
   void _startTimer(int minutes) {
     setState(() {
+      _sessionSeconds = minutes * 60;
       _remainingSeconds = minutes * 60;
       _isPlaying = true;
     });
@@ -80,6 +85,11 @@ class _MeditationScreenState extends State<MeditationScreen>
   }
 
   void _stopTimer() {
+    final elapsed = _sessionSeconds - _remainingSeconds;
+    if (elapsed >= 60) {
+      context.read<ActivityLog>().log(ActivityType.meditation,
+          durationSeconds: elapsed);
+    }
     setState(() {
       _isPlaying = false;
       _isBreathing = false;
