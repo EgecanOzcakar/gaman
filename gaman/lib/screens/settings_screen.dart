@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/feature_prefs.dart';
 import '../services/gemini_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -80,11 +82,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        children: [
+            _PracticesCard(),
+            const SizedBox(height: 24),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -202,7 +204,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+    );
+  }
+}
+
+class _PracticesCard extends StatelessWidget {
+  static const _labels = {
+    'meditation': 'Meditation',
+    'journal': 'Journal',
+    'binaural': 'Binaural Beats',
+    'focus': 'Focus Timer',
+    'todo': 'Daily Goals',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Consumer<FeaturePrefs>(
+        builder: (context, prefs, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              child: Text(
+                'Practices on home',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            for (final id in FeaturePrefs.ids)
+              SwitchListTile(
+                title: Text(_labels[id]!),
+                value: prefs.isEnabled(id),
+                onChanged: (v) => prefs.setEnabled(id, v),
+              ),
+          ],
+        ),
       ),
     );
   }
-} 
+}
