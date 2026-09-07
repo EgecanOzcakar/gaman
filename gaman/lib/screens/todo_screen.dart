@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
@@ -103,15 +107,8 @@ class _TodoScreenState extends State<TodoScreen> {
       if (tasksJson.isNotEmpty) {
         for (final taskJson in tasksJson) {
           try {
-            final task = TodoTask.fromJson(Map<String, dynamic>.from(
-              Map.fromEntries(
-                taskJson.split(',').map((e) {
-                  final parts = e.split(':');
-                  return MapEntry(parts[0], parts[1]);
-                }),
-              ),
-            ));
-            _tasks.add(task);
+            _tasks.add(TodoTask.fromJson(
+                jsonDecode(taskJson) as Map<String, dynamic>));
           } catch (e) {
             debugPrint('Error loading task: $e');
           }
@@ -195,17 +192,20 @@ class _TodoScreenState extends State<TodoScreen> {
   Future<void> _saveTasks() async {
     final prefs = await SharedPreferences.getInstance();
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final tasksJson = _tasks.map((task) => task.toJson().entries
-        .map((e) => '${e.key}:${e.value}')
-        .join(',')).toList();
+    final tasksJson =
+        _tasks.map((task) => jsonEncode(task.toJson())).toList();
     await prefs.setStringList('todo_tasks_$today', tasksJson);
   }
 
   void _toggleTask(TodoTask task) {
-    setState(() {
-      task.isCompleted = !task.isCompleted;
-    });
+    setState(() => task.isCompleted = !task.isCompleted);
     HapticFeedback.selectionClick();
+    if (task.isCompleted) {
+      context.read<ActivityLog>().log(
+        ActivityType.taskDone,
+        meta: {'title': task.title, 'frog': task.isMainTask},
+      );
+    }
     _saveTasks();
   }
 

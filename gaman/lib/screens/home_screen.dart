@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../providers/quote_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/feature_prefs.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
@@ -260,22 +261,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         childAspectRatio: 0.8,
                         children: [
                           for (final (i, f) in <_Feature>[
-                            _Feature('Meditation', Icons.self_improvement,
+                            _Feature('meditation', 'Meditation', Icons.self_improvement,
                                 Theme.of(context).colorScheme.primary,
                                 () => const MeditationScreen()),
-                            _Feature('Journal', Icons.edit_note,
+                            _Feature('journal', 'Journal', Icons.edit_note,
                                 Theme.of(context).colorScheme.secondary,
                                 () => const JournalScreen()),
-                            _Feature('Binaural Beats', Icons.graphic_eq,
+                            _Feature('binaural', 'Binaural Beats', Icons.graphic_eq,
                                 Theme.of(context).colorScheme.tertiary,
                                 () => const BinauralBeatsScreen()),
-                            _Feature('Focus Timer', Icons.timelapse,
+                            _Feature('focus', 'Focus Timer', Icons.timelapse,
                                 Theme.of(context).colorScheme.error,
                                 () => const FocusScreen()),
-                            _Feature('Daily Goals', Icons.flag_outlined,
+                            _Feature('todo', 'Daily Goals', Icons.flag_outlined,
                                 Theme.of(context).colorScheme.primary,
                                 () => const TodoScreen()),
                           ].indexed)
+                            if (context.watch<FeaturePrefs>().isEnabled(f.id))
                             FadeSlideIn(
                               delay: Duration(milliseconds: 140 + i * 70),
                               child: _FeatureCard(
@@ -308,7 +310,8 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _Feature {
-  const _Feature(this.title, this.icon, this.color, this.screen);
+  const _Feature(this.id, this.title, this.icon, this.color, this.screen);
+  final String id;
   final String title;
   final IconData icon;
   final Color color;

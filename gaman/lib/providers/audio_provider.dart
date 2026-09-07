@@ -72,6 +72,8 @@ class AudioProvider with ChangeNotifier {
 
   Future<void> _initialize() async {
     await _loadVolume();
+    // Beats are short seamless loops; repeat until the user stops.
+    await _audioPlayer.setLoopMode(LoopMode.one);
     _preloadAudioAssets();
     
     _audioPlayer.playerStateStream.listen((state) {

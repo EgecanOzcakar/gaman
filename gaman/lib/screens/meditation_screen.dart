@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:provider/provider.dart';
+import '../providers/activity_log.dart';
+import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/persistent_audio_control.dart';
 
@@ -23,13 +26,15 @@ class _MeditationScreenState extends State<MeditationScreen>
   bool _isBreathing = false;
   String _cue = 'Breathe in';
 
-  final List<int> _presetDurations = [5, 10, 15, 20, 30];
+  late final List<int> _presetDurations;
 
   @override
   void initState() {
     super.initState();
+    final defaultMinutes = context.read<SettingsProvider>().meditationMinutes;
+    _presetDurations = {5, 10, 15, 20, 30, defaultMinutes}.toList()..sort();
     _breathingController = AnimationController(
-      duration: const Duration(seconds: 4),
+      duration: Duration(seconds: context.read<SettingsProvider>().breathSeconds),
       vsync: this,
     );
 
@@ -61,8 +66,11 @@ class _MeditationScreenState extends State<MeditationScreen>
     super.dispose();
   }
 
+  int _sessionSeconds = 0;
+
   void _startTimer(int minutes) {
     setState(() {
+      _sessionSeconds = minutes * 60;
       _remainingSeconds = minutes * 60;
       _isPlaying = true;
     });
@@ -80,6 +88,11 @@ class _MeditationScreenState extends State<MeditationScreen>
   }
 
   void _stopTimer() {
+    final elapsed = _sessionSeconds - _remainingSeconds;
+    if (elapsed >= 60) {
+      context.read<ActivityLog>().log(ActivityType.meditation,
+          durationSeconds: elapsed);
+    }
     setState(() {
       _isPlaying = false;
       _isBreathing = false;
