@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../theme/app_theme.dart';
+import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
 
 class JournalEntry {
@@ -194,7 +196,9 @@ class _JournalScreenState extends State<JournalScreen> {
                             itemCount: _entries.length,
                             itemBuilder: (context, index) {
                               final entry = _entries[index];
-                              return Card(
+                              return FadeSlideIn(
+                                delay: Duration(milliseconds: (index * 50).clamp(0, 400)),
+                                child: Card(
                                 margin: const EdgeInsets.only(bottom: 16),
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.all(16),
@@ -232,6 +236,7 @@ class _JournalScreenState extends State<JournalScreen> {
                                     onPressed: () => _deleteEntry(entry),
                                   ),
                                 ),
+                                ),
                               );
                             },
                           ),
@@ -258,25 +263,30 @@ class _JournalScreenState extends State<JournalScreen> {
                       const SizedBox(height: 8),
                       Row(
                         children: _moods.map((mood) {
+                          final selected = _selectedMood == mood;
                           return GestureDetector(
                             onTap: () => setState(() => _selectedMood = mood),
-                            child: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.all(8),
+                            child: AnimatedContainer(
+                              duration: Motion.quick,
+                              curve: Motion.curve,
+                              margin: const EdgeInsets.only(right: Insets.sm),
+                              padding: const EdgeInsets.all(Insets.sm),
                               decoration: BoxDecoration(
-                                color: _selectedMood == mood
-                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                color: selected
+                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
                                     : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(Radii.control),
                                 border: Border.all(
-                                  color: _selectedMood == mood
+                                  color: selected
                                       ? Theme.of(context).colorScheme.primary
-                                      : Colors.transparent,
+                                      : Theme.of(context).colorScheme.outlineVariant,
                                 ),
                               ),
-                              child: Text(
-                                mood,
-                                style: const TextStyle(fontSize: 24),
+                              child: AnimatedScale(
+                                scale: selected ? 1.15 : 1,
+                                duration: Motion.quick,
+                                curve: Motion.curve,
+                                child: Text(mood, style: const TextStyle(fontSize: 24)),
                               ),
                             ),
                           );
@@ -300,9 +310,9 @@ class _JournalScreenState extends State<JournalScreen> {
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: FilledButton(
                           onPressed: _saveEntry,
-                          child: const Text('Save Entry'),
+                          child: const Text('Save entry'),
                         ),
                       ),
                     ],

@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../providers/quote_provider.dart';
 import '../providers/theme_provider.dart';
-import '../providers/notification_provider.dart';
+import '../theme/app_theme.dart';
+import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
 import 'meditation_screen.dart';
 import 'journal_screen.dart';
@@ -100,15 +101,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 floating: true,
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.brightness_6),
-                    onPressed: () {
-                      final themeProvider = context.read<ThemeProvider>();
-                      themeProvider.setThemeMode(
-                        themeProvider.themeMode == ThemeMode.light
-                            ? ThemeMode.dark
-                            : ThemeMode.light,
-                      );
-                    },
+                    icon: Icon(
+                      context.watch<ThemeProvider>().isDarkMode
+                          ? Icons.light_mode_outlined
+                          : Icons.dark_mode_outlined,
+                    ),
+                    onPressed: () => context.read<ThemeProvider>().toggle(),
                   ),
                   IconButton(
                     icon: const Icon(Icons.settings),
@@ -129,7 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Consumer<QuoteProvider>(
+                      FadeSlideIn(
+                       child: Consumer<QuoteProvider>(
                         builder: (context, quoteProvider, child) {
                           final quote = quoteProvider.currentQuote;
                           if (quote == null) {
@@ -241,78 +240,52 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
+                       ),
                       ),
-                      const SizedBox(height: 32),
-                      Text(
-                        'Features',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(height: Insets.xl),
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 90),
+                        child: Text(
+                          'Practices',
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Insets.md),
                       GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 3,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
+                        mainAxisSpacing: Insets.md,
+                        crossAxisSpacing: Insets.md,
                         childAspectRatio: 0.8,
                         children: [
-                          _FeatureCard(
-                            title: 'Meditation',
-                            icon: Icons.self_improvement,
-                            color: Theme.of(context).colorScheme.primary,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MeditationScreen(),
+                          for (final (i, f) in <_Feature>[
+                            _Feature('Meditation', Icons.self_improvement,
+                                Theme.of(context).colorScheme.primary,
+                                () => const MeditationScreen()),
+                            _Feature('Journal', Icons.edit_note,
+                                Theme.of(context).colorScheme.secondary,
+                                () => const JournalScreen()),
+                            _Feature('Binaural Beats', Icons.graphic_eq,
+                                Theme.of(context).colorScheme.tertiary,
+                                () => const BinauralBeatsScreen()),
+                            _Feature('Focus Timer', Icons.timelapse,
+                                Theme.of(context).colorScheme.error,
+                                () => const FocusScreen()),
+                            _Feature('Daily Goals', Icons.flag_outlined,
+                                Theme.of(context).colorScheme.primary,
+                                () => const TodoScreen()),
+                          ].indexed)
+                            FadeSlideIn(
+                              delay: Duration(milliseconds: 140 + i * 70),
+                              child: _FeatureCard(
+                                title: f.title,
+                                icon: f.icon,
+                                color: f.color,
+                                onTap: () => Navigator.push(context,
+                                    MaterialPageRoute(builder: (_) => f.screen())),
                               ),
                             ),
-                          ),
-                          _FeatureCard(
-                            title: 'Journal',
-                            icon: Icons.book,
-                            color: Theme.of(context).colorScheme.secondary,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const JournalScreen(),
-                              ),
-                            ),
-                          ),
-                          _FeatureCard(
-                            title: 'Binaural Beats',
-                            icon: Icons.waves,
-                            color: Theme.of(context).colorScheme.tertiary,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const BinauralBeatsScreen(),
-                              ),
-                            ),
-                          ),
-                          _FeatureCard(
-                            title: 'Focus Timer',
-                            icon: Icons.timer,
-                            color: Theme.of(context).colorScheme.error,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const FocusScreen(),
-                              ),
-                            ),
-                          ),
-                          _FeatureCard(
-                            title: 'Todo Goals',
-                            icon: Icons.task_alt,
-                            color: Theme.of(context).colorScheme.primary,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const TodoScreen(),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ],
@@ -334,6 +307,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+class _Feature {
+  const _Feature(this.title, this.icon, this.color, this.screen);
+  final String title;
+  final IconData icon;
+  final Color color;
+  final Widget Function() screen;
+}
+
 class _FeatureCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -349,43 +330,31 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withOpacity(0.1),
-                color.withOpacity(0.05),
-              ],
+    return PressScale(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(Insets.md),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(Radii.card),
+          border: Border.all(color: color.withOpacity(0.25)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 30, color: color),
+            const SizedBox(height: Insets.sm),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 32,
-                color: color,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );

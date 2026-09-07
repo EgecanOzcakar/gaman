@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import '../theme/app_theme.dart';
 import '../widgets/persistent_audio_control.dart';
 
 class MeditationScreen extends StatefulWidget {
@@ -19,6 +21,7 @@ class _MeditationScreenState extends State<MeditationScreen>
   int _remainingSeconds = 0;
   bool _isPlaying = false;
   bool _isBreathing = false;
+  String _cue = 'Breathe in';
 
   final List<int> _presetDurations = [5, 10, 15, 20, 30];
 
@@ -40,8 +43,12 @@ class _MeditationScreenState extends State<MeditationScreen>
     _breathingController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         _breathingController.reverse();
+        if (mounted) setState(() => _cue = 'Breathe out');
+        HapticFeedback.lightImpact();
       } else if (status == AnimationStatus.dismissed) {
         _breathingController.forward();
+        if (mounted) setState(() => _cue = 'Breathe in');
+        HapticFeedback.lightImpact();
       }
     });
   }
@@ -114,23 +121,32 @@ class _MeditationScreenState extends State<MeditationScreen>
                   child: AnimatedBuilder(
                     animation: _breathingAnimation,
                     builder: (context, child) {
+                      final scheme = Theme.of(context).colorScheme;
                       return Transform.scale(
                         scale: _isBreathing ? _breathingAnimation.value : 1.0,
                         child: Container(
-                          width: 200,
-                          height: 200,
+                          width: 220,
+                          height: 220,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
-                            ),
+                            color: scheme.primary.withOpacity(0.10),
+                            border: Border.all(color: scheme.primary, width: 2),
                           ),
-                          child: Center(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
                             child: Text(
-                              _isPlaying ? _formatTime(_remainingSeconds) : '00:00',
-                              style: Theme.of(context).textTheme.displayLarge,
+                              _isBreathing
+                                  ? _cue
+                                  : _isPlaying
+                                      ? _formatTime(_remainingSeconds)
+                                      : 'Be still',
+                              key: ValueKey(_isBreathing
+                                  ? _cue
+                                  : _isPlaying
+                                      ? 'time'
+                                      : 'still'),
+                              style: Theme.of(context).textTheme.headlineSmall,
                             ),
                           ),
                         ),
@@ -145,45 +161,48 @@ class _MeditationScreenState extends State<MeditationScreen>
                   children: [
                     if (!_isPlaying) ...[
                       Text(
-                        'Choose Duration',
+                        'Set a duration',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Insets.md),
                       Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                        spacing: Insets.sm,
+                        runSpacing: Insets.sm,
+                        alignment: WrapAlignment.center,
                         children: _presetDurations.map((minutes) {
-                          return ElevatedButton(
-                            onPressed: () => _startTimer(minutes),
-                            child: Text('${minutes}m'),
+                          return ActionChip(
+                            label: Text('$minutes min'),
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              _startTimer(minutes);
+                            },
                           );
                         }).toList(),
                       ),
                     ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Insets.md),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (_isPlaying)
-                          ElevatedButton.icon(
+                        if (_isPlaying) ...[
+                          OutlinedButton.icon(
                             onPressed: _stopTimer,
-                            icon: const Icon(Icons.stop),
+                            icon: const Icon(Icons.stop_rounded),
                             label: const Text('Stop'),
                           ),
-                        const SizedBox(width: 16),
-                        ElevatedButton.icon(
-                          onPressed: _toggleBreathing,
-                          icon: Icon(_isBreathing ? Icons.pause : Icons.play_arrow),
-                          label: Text(_isBreathing ? 'Stop Breathing' : 'Start Breathing'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _isBreathing
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                            foregroundColor: _isBreathing
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : null,
-                          ),
-                        ),
+                          const SizedBox(width: Insets.md),
+                        ],
+                        _isBreathing
+                            ? FilledButton.icon(
+                                onPressed: _toggleBreathing,
+                                icon: const Icon(Icons.pause_rounded),
+                                label: const Text('Pause breathing'),
+                              )
+                            : FilledButton.tonalIcon(
+                                onPressed: _toggleBreathing,
+                                icon: const Icon(Icons.air_rounded),
+                                label: const Text('Guide my breath'),
+                              ),
                       ],
                     ),
                   ],

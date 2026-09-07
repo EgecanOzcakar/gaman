@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// import 'package:google_fonts/google_fonts.dart';  // Commenting out until we have fonts
+import 'theme/app_theme.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-// Import screens
-import 'screens/home_screen.dart';
-import 'screens/meditation_screen.dart';
-import 'screens/journal_screen.dart';
-import 'screens/binaural_beats_screen.dart';
-import 'screens/focus_screen.dart';
 import 'screens/splash_screen.dart';
 
 // Import providers
@@ -76,51 +69,9 @@ class MyApp extends StatelessWidget {
         builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'Gaman',
-            // Web-specific optimizations
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF2C3E50), // More professional dark blue
-                brightness: Brightness.light,
-              ),
-              appBarTheme: const AppBarTheme(
-                centerTitle: true,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                foregroundColor: Color(0xFF2C3E50),
-              ),
-              cardTheme: const CardThemeData(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                ),
-              ),
-              // Optimize for web performance
-              splashFactory: kIsWeb ? NoSplash.splashFactory : null,
-              highlightColor: kIsWeb ? Colors.transparent : null,
-            ),
-            darkTheme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF2C3E50),
-                brightness: Brightness.dark,
-              ),
-              appBarTheme: const AppBarTheme(
-                centerTitle: true,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-              ),
-              cardTheme: const CardThemeData(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                ),
-              ),
-              // Optimize for web performance
-              splashFactory: kIsWeb ? NoSplash.splashFactory : null,
-              highlightColor: kIsWeb ? Colors.transparent : null,
-            ),
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
             themeMode: themeProvider.themeMode,
             home: const SplashScreen(), // Changed from HomeScreen to SplashScreen
           );

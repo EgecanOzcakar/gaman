@@ -119,10 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         hintText: 'Enter your Gemini API key',
                         border: const OutlineInputBorder(),
                         suffixIcon: _isConfigured
-                            ? Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                              )
+                            ? const Icon(Icons.check_circle, color: Color(0xFF5C8A5C))
                             : null,
                       ),
                       obscureText: true,
@@ -130,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: FilledButton(
                         onPressed: _isLoading ? null : _saveApiKey,
                         child: _isLoading
                             ? const SizedBox(
@@ -145,7 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(

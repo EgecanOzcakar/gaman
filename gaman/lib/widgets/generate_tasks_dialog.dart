@@ -94,8 +94,8 @@ class _GenerateTasksDialogState extends State<GenerateTasksDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _roleController.text.trim().isEmpty || 
+        FilledButton(
+          onPressed: _roleController.text.trim().isEmpty ||
                      _focusController.text.trim().isEmpty
               ? null
               : () {
