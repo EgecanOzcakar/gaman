@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../services/data_export.dart';
 import 'package:provider/provider.dart';
 import '../providers/feature_prefs.dart';
 import '../providers/notification_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/data_export.dart';
 import '../services/gemini_service.dart';
 import '../theme/app_theme.dart';
 
@@ -61,6 +61,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _export() async {
+    try {
+      await exportAllData();
+    } catch (e) {
+      _showSnackBar('Could not export: $e');
+    }
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
@@ -69,15 +77,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(Insets.md),
@@ -113,6 +112,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: Insets.lg),
           _Section(
+            title: 'Practices on home',
+            child: Consumer<FeaturePrefs>(
+              builder: (context, prefs, _) => Column(
+                children: [
+                  for (final id in FeaturePrefs.ids)
+                    SwitchListTile(
+                      title: Text(_practiceLabels[id]!),
+                      value: prefs.isEnabled(id),
+                      onChanged: (v) => prefs.setEnabled(id, v),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: Insets.lg),
+          _Section(
             title: 'Daily reminder',
             child: Consumer<NotificationProvider>(
               builder: (context, notif, _) {
@@ -137,7 +152,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? () async {
                               final picked = await showTimePicker(
                                 context: context,
-                                initialTime: time ?? const TimeOfDay(hour: 9, minute: 0),
+                                initialTime: time ??
+                                    const TimeOfDay(hour: 9, minute: 0),
                               );
                               if (picked != null) await notif.setTime(picked);
                             }
@@ -246,11 +262,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+          const SizedBox(height: Insets.lg),
+          _Section(
+            title: 'Your data',
+            child: Padding(
+              padding: const EdgeInsets.all(Insets.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Everything is stored on this device. Export a copy to '
+                    'keep somewhere safe or move to another phone.',
+                  ),
+                  const SizedBox(height: Insets.md),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _export,
+                      icon: const Icon(Icons.ios_share),
+                      label: const Text('Export all data'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
+
+const _practiceLabels = {
+  'meditation': 'Meditation',
+  'journal': 'Journal',
+  'binaural': 'Binaural Beats',
+  'focus': 'Focus Timer',
+  'todo': 'Daily Goals',
+};
 
 class _Section extends StatelessWidget {
   const _Section({required this.title, required this.child});
@@ -266,82 +315,50 @@ class _Section extends StatelessWidget {
           padding: const EdgeInsets.only(left: Insets.xs, bottom: Insets.sm),
           child: Text(title, style: Theme.of(context).textTheme.titleLarge),
         ),
+        Card(child: child),
+      ],
     );
   }
 }
 
-class _PracticesCard extends StatelessWidget {
-  static const _labels = {
-    'meditation': 'Meditation',
-    'journal': 'Journal',
-    'binaural': 'Binaural Beats',
-    'focus': 'Focus Timer',
-    'todo': 'Daily Goals',
-  };
+class _StepperTile extends StatelessWidget {
+  const _StepperTile({
+    required this.label,
+    required this.value,
+    this.onMinus,
+    this.onPlus,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback? onMinus;
+  final VoidCallback? onPlus;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Consumer<FeaturePrefs>(
-        builder: (context, prefs, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: Text(
-                'Practices on home',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
+    return ListTile(
+      title: Text(label),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: onMinus,
+            icon: const Icon(Icons.remove_circle_outline),
+          ),
+          SizedBox(
+            width: 84,
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.download_outlined,
-                            color: Theme.of(context).colorScheme.secondary),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Your data',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Everything is stored on this device. Export a copy you '
-                      'can keep somewhere safe or move to another phone.',
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          try {
-                            await exportAllData();
-                          } catch (e) {
-                            _showSnackBar('Could not export: $e');
-                          }
-                        },
-                        icon: const Icon(Icons.ios_share),
-                        label: const Text('Export all data'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            onPressed: onPlus,
+            icon: const Icon(Icons.add_circle_outline),
+          ),
+        ],
+      ),
     );
   }
 }
