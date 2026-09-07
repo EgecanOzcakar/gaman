@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../providers/quote_provider.dart';
+import '../theme/app_theme.dart';
 import '../widgets/persistent_audio_control.dart';
+import '../widgets/timer_ring.dart';
 
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
@@ -51,7 +52,16 @@ class _FocusScreenState extends State<FocusScreen> {
     await prefs.setInt('completed_pomodoros', _completedPomodoros);
   }
 
+  int get _totalSeconds =>
+      (_isBreak
+          ? (_completedPomodoros % _pomodorosUntilLongBreak == 0
+              ? _longBreakDuration
+              : _breakDuration)
+          : _selectedDuration) *
+      60;
+
   void _startTimer() {
+    HapticFeedback.selectionClick();
     if (_isPlaying) {
       _timer?.cancel();
       setState(() => _isPlaying = false);
@@ -123,6 +133,13 @@ class _FocusScreenState extends State<FocusScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final displaySeconds =
+        (_isPlaying || _remainingSeconds > 0) ? _remainingSeconds : _totalSeconds;
+    final ringColor = _isBreak ? scheme.tertiary : scheme.primary;
+    final progress =
+        _totalSeconds == 0 ? 0.0 : 1 - (displaySeconds / _totalSeconds);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Focus Timer'),
@@ -137,68 +154,68 @@ class _FocusScreenState extends State<FocusScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _isBreak ? 'Break Time' : 'Focus Time',
-                        style: Theme.of(context).textTheme.headlineMedium,
+                        _isBreak ? 'Rest' : 'Focus',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: ringColor,
+                              letterSpacing: 1,
+                            ),
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        _formatTime(_remainingSeconds),
-                        style: Theme.of(context).textTheme.displayLarge,
+                      const SizedBox(height: Insets.xl),
+                      TimerRing(
+                        progress: progress,
+                        color: ringColor,
+                        child: Text(
+                          _formatTime(displaySeconds),
+                          style: Theme.of(context).textTheme.displayMedium,
+                        ),
                       ),
-                      const SizedBox(height: 24),
-                      if (!_isPlaying) ...[
-                        Text(
-                          'Choose Duration',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _pomodoroDurations.map((minutes) {
-                            return ChoiceChip(
-                              label: Text('${minutes}m'),
-                              selected: _selectedDuration == minutes,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  setState(() {
-                                    _selectedDuration = minutes;
-                                    _remainingSeconds = minutes * 60;
-                                  });
-                                  _saveSettings();
-                                }
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                      const SizedBox(height: 24),
+                      const SizedBox(height: Insets.xl),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        child: !_isPlaying
+                            ? Wrap(
+                                key: const ValueKey('chips'),
+                                spacing: Insets.sm,
+                                runSpacing: Insets.sm,
+                                children: _pomodoroDurations.map((minutes) {
+                                  return ChoiceChip(
+                                    label: Text('$minutes min'),
+                                    selected: _selectedDuration == minutes,
+                                    onSelected: (selected) {
+                                      if (selected) {
+                                        setState(() {
+                                          _selectedDuration = minutes;
+                                          _remainingSeconds = minutes * 60;
+                                        });
+                                        _saveSettings();
+                                      }
+                                    },
+                                  );
+                                }).toList(),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      const SizedBox(height: Insets.lg),
                       Text(
-                        'Completed Pomodoros: $_completedPomodoros',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        '$_completedPomodoros session${_completedPomodoros == 1 ? '' : 's'} completed',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurface.withOpacity(0.6),
+                            ),
                       ),
                     ],
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_isPlaying)
-                      ElevatedButton.icon(
-                        onPressed: _startTimer,
-                        icon: const Icon(Icons.stop),
-                        label: const Text('Stop'),
-                      )
-                    else
-                      ElevatedButton.icon(
-                        onPressed: _startTimer,
-                        icon: const Icon(Icons.play_arrow),
-                        label: Text(_isBreak ? 'Start Break' : 'Start Focus'),
-                      ),
-                  ],
+                padding: const EdgeInsets.all(Insets.md),
+                child: FilledButton.icon(
+                  onPressed: _startTimer,
+                  icon: Icon(_isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded),
+                  label: Text(_isPlaying
+                      ? 'Stop'
+                      : _isBreak
+                          ? 'Start rest'
+                          : 'Start focus'),
                 ),
               ),
             ],

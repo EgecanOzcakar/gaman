@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/audio_provider.dart';
+import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
 
 class BinauralBeatsScreen extends StatefulWidget {
@@ -79,7 +81,9 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                         final isSelected = audioProvider.currentBeat == beat;
                         final isPlaying = isSelected && audioProvider.isPlaying;
 
-                        return Card(
+                        return FadeSlideIn(
+                          delay: Duration(milliseconds: (index * 60).clamp(0, 360)),
+                          child: Card(
                           margin: const EdgeInsets.only(bottom: 16),
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16),
@@ -101,19 +105,24 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                                     ],
                                   ),
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    // Immediate feedback
+                                IconButton(
+                                  onPressed: () {
+                                    HapticFeedback.selectionClick();
                                     audioProvider.playBeat(beat);
                                   },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
+                                  iconSize: 30,
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                                  icon: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 200),
+                                    transitionBuilder: (c, a) =>
+                                        ScaleTransition(scale: a, child: c),
                                     child: Icon(
-                                      isPlaying && isSelected ? Icons.pause : Icons.play_arrow,
-                                      color: isSelected
-                                          ? Theme.of(context).colorScheme.primary
-                                          : null,
-                                      size: 28,
+                                      isPlaying && isSelected
+                                          ? Icons.pause_rounded
+                                          : Icons.play_arrow_rounded,
+                                      key: ValueKey(isPlaying && isSelected),
                                     ),
                                   ),
                                 ),
@@ -126,6 +135,7 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                             selected: isSelected,
                             selectedTileColor:
                                 Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          ),
                           ),
                         );
                       },

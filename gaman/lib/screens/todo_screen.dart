@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../theme/app_theme.dart';
+import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
 import '../services/gemini_service.dart';
 import '../widgets/generate_tasks_dialog.dart';
@@ -202,6 +205,7 @@ class _TodoScreenState extends State<TodoScreen> {
     setState(() {
       task.isCompleted = !task.isCompleted;
     });
+    HapticFeedback.selectionClick();
     _saveTasks();
   }
 
@@ -526,12 +530,22 @@ class _TodoScreenState extends State<TodoScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Theme.of(context).colorScheme.primary,
+                const SizedBox(height: Insets.sm),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: progress),
+                  duration: Motion.reduced(context) ? Duration.zero : Motion.base,
+                  curve: Motion.curve,
+                  builder: (context, value, _) => ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: value,
+                      minHeight: 8,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                   ),
                 ),
               ],

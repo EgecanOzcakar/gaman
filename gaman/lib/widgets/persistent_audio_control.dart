@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/audio_provider.dart';
 import '../screens/binaural_beats_screen.dart';
+import '../theme/motion.dart';
 
 class PersistentAudioControl extends StatelessWidget {
   const PersistentAudioControl({super.key});
@@ -10,11 +12,25 @@ class PersistentAudioControl extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AudioProvider>(
       builder: (context, audioProvider, child) {
-        if (!audioProvider.hasActiveAudio) {
-          return const SizedBox.shrink();
-        }
+        final active = audioProvider.hasActiveAudio;
+        return AnimatedSlide(
+          offset: active ? Offset.zero : const Offset(0, 1),
+          duration: Motion.reduced(context) ? Duration.zero : Motion.base,
+          curve: Motion.curve,
+          child: AnimatedOpacity(
+            opacity: active ? 1 : 0,
+            duration: Motion.reduced(context) ? Duration.zero : Motion.base,
+            child: !active
+                ? const SizedBox(width: double.infinity)
+                : _bar(context, audioProvider),
+          ),
+        );
+      },
+    );
+  }
 
-        return Container(
+  Widget _bar(BuildContext context, AudioProvider audioProvider) {
+    return Container(
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
@@ -105,67 +121,47 @@ class PersistentAudioControl extends StatelessWidget {
                     ),
                   ),
                   
-                  // Play/Pause Button
-                  GestureDetector(
-                    onTap: () {
-                      // Immediate feedback
+                  IconButton(
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
                       if (audioProvider.isPlaying) {
                         audioProvider.pause();
                       } else {
                         audioProvider.resume();
                       }
                     },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
+                    color: Theme.of(context).colorScheme.primary,
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      transitionBuilder: (c, a) =>
+                          ScaleTransition(scale: a, child: c),
                       child: Icon(
-                        audioProvider.isPlaying ? Icons.pause : Icons.play_arrow,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 28,
+                        audioProvider.isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        key: ValueKey(audioProvider.isPlaying),
                       ),
                     ),
                   ),
-                  
-                  // Stop Button
-                  GestureDetector(
-                    onTap: () {
-                      // Immediate feedback
-                      audioProvider.stop();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.stop,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                        size: 24,
-                      ),
-                    ),
+                  IconButton(
+                    onPressed: audioProvider.stop,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    icon: const Icon(Icons.stop_rounded),
                   ),
-                  
-                  // Open Binaural Beats Screen
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const BinauralBeatsScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.open_in_new,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                        size: 20,
+                  IconButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BinauralBeatsScreen(),
                       ),
                     ),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    icon: const Icon(Icons.open_in_new_rounded, size: 20),
                   ),
                 ],
               ),
             ),
           ),
         );
-      },
-    );
   }
-} 
+}
