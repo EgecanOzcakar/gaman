@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/notification_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/gemini_service.dart';
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -29,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadApiKey() async {
     final apiKey = await _geminiService.getApiKey();
     final isConfigured = await _geminiService.isConfigured();
-    
+    if (!mounted) return;
     setState(() {
       _apiKeyController.text = apiKey ?? '';
       _isConfigured = isConfigured;
@@ -38,171 +43,262 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _saveApiKey() async {
     if (_apiKeyController.text.trim().isEmpty) {
-      _showSnackBar('Please enter your Gemini API key');
+      _showSnackBar('Enter your Gemini API key first');
       return;
     }
-
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
       await _geminiService.setApiKey(_apiKeyController.text.trim());
-      setState(() {
-        _isConfigured = true;
-      });
-      _showSnackBar('API key saved successfully!');
-      
-      // Return to previous screen after a short delay
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
-      });
+      if (!mounted) return;
+      setState(() => _isConfigured = true);
+      _showSnackBar('API key saved');
     } catch (e) {
-      _showSnackBar('Failed to save API key: $e');
+      _showSnackBar('Could not save the API key: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(title: const Text('Settings')),
+      body: ListView(
+        padding: const EdgeInsets.all(Insets.md),
+        children: [
+          _Section(
+            title: 'Appearance',
+            child: Consumer<ThemeProvider>(
+              builder: (context, theme, _) => Padding(
+                padding: const EdgeInsets.all(Insets.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'AI Task Generation',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    Text('Theme',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: Insets.sm),
+                    SegmentedButton<ThemeMode>(
+                      segments: const [
+                        ButtonSegment(
+                            value: ThemeMode.system, label: Text('System')),
+                        ButtonSegment(
+                            value: ThemeMode.light, label: Text('Light')),
+                        ButtonSegment(
+                            value: ThemeMode.dark, label: Text('Dark')),
                       ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Configure Gemini AI to automatically generate personalized todo tasks based on your role and current focus.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _apiKeyController,
-                      decoration: InputDecoration(
-                        labelText: 'Gemini API Key',
-                        hintText: 'Enter your Gemini API key',
-                        border: const OutlineInputBorder(),
-                        suffixIcon: _isConfigured
-                            ? const Icon(Icons.check_circle, color: Color(0xFF5C8A5C))
-                            : null,
-                      ),
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _isLoading ? null : _saveApiKey,
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text('Save API Key'),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'How to get your API key:',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            '1. Go to Google AI Studio (https://makersuite.google.com/app/apikey)\n'
-                            '2. Sign in with your Google account\n'
-                            '3. Click "Create API Key"\n'
-                            '4. Copy the generated key and paste it above',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
+                      selected: {theme.themeMode},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (s) => theme.setThemeMode(s.first),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          const SizedBox(height: Insets.lg),
+          _Section(
+            title: 'Daily reminder',
+            child: Consumer<NotificationProvider>(
+              builder: (context, notif, _) {
+                final time = notif.scheduledTime;
+                return Column(
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'How it works',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    SwitchListTile(
+                      title: const Text('Remind me to reflect'),
+                      subtitle: const Text(
+                          'A daily nudge to check in and set your goals'),
+                      value: notif.isEnabled,
+                      onChanged: notif.toggleNotifications,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Once configured, you can use the "Generate Tasks" button in the Todo screen. '
-                      'The AI will ask for your role and current focus, then generate personalized tasks for your day.',
+                    ListTile(
+                      enabled: notif.isEnabled,
+                      title: const Text('Reminder time'),
+                      trailing: Text(
+                        time == null ? '--:--' : time.format(context),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      onTap: notif.isEnabled
+                          ? () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: time ?? const TimeOfDay(hour: 9, minute: 0),
+                              );
+                              if (picked != null) await notif.setTime(picked);
+                            }
+                          : null,
                     ),
                   ],
-                ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: Insets.lg),
+          _Section(
+            title: 'Timers',
+            child: Consumer<SettingsProvider>(
+              builder: (context, s, _) => Column(
+                children: [
+                  _StepperTile(
+                    label: 'Default meditation length',
+                    value: '${s.meditationMinutes} min',
+                    onMinus: s.meditationMinutes > 5
+                        ? () => s.setMeditationMinutes(s.meditationMinutes - 5)
+                        : null,
+                    onPlus: s.meditationMinutes < 60
+                        ? () => s.setMeditationMinutes(s.meditationMinutes + 5)
+                        : null,
+                  ),
+                  _StepperTile(
+                    label: 'Breathing pace (in / out)',
+                    value: '${s.breathSeconds}s',
+                    onMinus: s.breathSeconds > 3
+                        ? () => s.setBreathSeconds(s.breathSeconds - 1)
+                        : null,
+                    onPlus: s.breathSeconds < 8
+                        ? () => s.setBreathSeconds(s.breathSeconds + 1)
+                        : null,
+                  ),
+                  _StepperTile(
+                    label: 'Default focus length',
+                    value: '${s.focusMinutes} min',
+                    onMinus: s.focusMinutes > 10
+                        ? () => s.setFocusMinutes(s.focusMinutes - 5)
+                        : null,
+                    onPlus: s.focusMinutes < 60
+                        ? () => s.setFocusMinutes(s.focusMinutes + 5)
+                        : null,
+                  ),
+                  _StepperTile(
+                    label: 'Long break after',
+                    value: '${s.longBreakEvery} sessions',
+                    onMinus: s.longBreakEvery > 2
+                        ? () => s.setLongBreakEvery(s.longBreakEvery - 1)
+                        : null,
+                    onPlus: s.longBreakEvery < 8
+                        ? () => s.setLongBreakEvery(s.longBreakEvery + 1)
+                        : null,
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: Insets.lg),
+          _Section(
+            title: 'AI task generation',
+            child: Padding(
+              padding: const EdgeInsets.all(Insets.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Add a Gemini API key to generate a daily task list from '
+                    'your role and current focus.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: Insets.md),
+                  TextField(
+                    controller: _apiKeyController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Gemini API key',
+                      suffixIcon: _isConfigured
+                          ? const Icon(Icons.check_circle,
+                              color: Color(0xFF5C8A5C))
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: Insets.md),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _isLoading ? null : _saveApiKey,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Save API key'),
+                    ),
+                  ),
+                  const SizedBox(height: Insets.sm),
+                  Text(
+                    'Create a key at aistudio.google.com/app/apikey',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
-} 
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.child});
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: Insets.xs, bottom: Insets.sm),
+          child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+        ),
+        Card(child: child),
+      ],
+    );
+  }
+}
+
+class _StepperTile extends StatelessWidget {
+  const _StepperTile({
+    required this.label,
+    required this.value,
+    this.onMinus,
+    this.onPlus,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback? onMinus;
+  final VoidCallback? onPlus;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(label),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: onMinus,
+            icon: const Icon(Icons.remove_circle_outline),
+          ),
+          SizedBox(
+            width: 84,
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          IconButton(
+            onPressed: onPlus,
+            icon: const Icon(Icons.add_circle_outline),
+          ),
+        ],
+      ),
+    );
+  }
+}

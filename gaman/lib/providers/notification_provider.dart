@@ -138,4 +138,14 @@ class NotificationProvider with ChangeNotifier {
   Future<void> rescheduleNotification() async {
     await _scheduleRandomTime();
   }
+
+  /// Set an explicit reminder time (from the settings screen).
+  Future<void> setTime(TimeOfDay time) async {
+    _scheduledTime = time;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_notificationTimeKey, '${time.hour}:${time.minute}');
+    await _notifications.cancelAll();
+    await _scheduleNotification();
+    notifyListeners();
+  }
 } 

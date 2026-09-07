@@ -13,6 +13,7 @@ import 'providers/quote_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/audio_provider.dart';
+import 'providers/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
