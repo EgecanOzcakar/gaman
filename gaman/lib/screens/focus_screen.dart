@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 import '../providers/activity_log.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
@@ -31,15 +34,21 @@ class _FocusScreenState extends State<FocusScreen> {
   int get _pomodorosUntilLongBreak =>
       context.read<SettingsProvider>().longBreakEvery;
 
+  final _intentionController = TextEditingController();
+  List<String> _todayTasks = [];
+  String? _selectedTask;
+
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _loadTodayTasks();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _intentionController.dispose();
     super.dispose();
   }
 
@@ -51,6 +60,20 @@ class _FocusScreenState extends State<FocusScreen> {
           context.read<SettingsProvider>().focusMinutes;
       _completedPomodoros = prefs.getInt('completed_pomodoros') ?? 0;
     });
+  }
+
+  Future<void> _loadTodayTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final titles = <String>[];
+    for (final s in prefs.getStringList('todo_tasks_$today') ?? const []) {
+      try {
+        final t = jsonDecode(s) as Map<String, dynamic>;
+        final title = (t['title'] as String?)?.trim() ?? '';
+        if (title.isNotEmpty) titles.add(title);
+      } catch (_) {}
+    }
+    if (mounted) setState(() => _todayTasks = titles);
   }
 
   Future<void> _saveSettings() async {
@@ -95,8 +118,15 @@ class _FocusScreenState extends State<FocusScreen> {
 
   void _handleTimerComplete() {
     if (!_isBreak) {
-      context.read<ActivityLog>().log(ActivityType.focus,
-          durationSeconds: _selectedDuration * 60);
+      context.read<ActivityLog>().log(
+        ActivityType.focus,
+        durationSeconds: _selectedDuration * 60,
+        meta: {
+          if (_selectedTask != null) 'task': _selectedTask,
+          if (_intentionController.text.trim().isNotEmpty)
+            'intention': _intentionController.text.trim(),
+        },
+      );
     }
     setState(() {
       _isPlaying = false;
@@ -160,7 +190,8 @@ class _FocusScreenState extends State<FocusScreen> {
           Column(
             children: [
               Expanded(
-                child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: Insets.xl),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -206,6 +237,50 @@ class _FocusScreenState extends State<FocusScreen> {
                               )
                             : const SizedBox.shrink(),
                       ),
+                      if (!_isPlaying && !_isBreak) ...[
+                        const SizedBox(height: Insets.lg),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 360),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: Insets.lg),
+                            child: Column(
+                              children: [
+                                if (_todayTasks.isNotEmpty)
+                                  DropdownButtonFormField<String>(
+                                    initialValue: _selectedTask,
+                                    isExpanded: true,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Working on',
+                                      isDense: true,
+                                    ),
+                                    items: [
+                                      const DropdownMenuItem(
+                                          value: null,
+                                          child: Text('No specific task')),
+                                      for (final t in _todayTasks)
+                                        DropdownMenuItem(
+                                            value: t,
+                                            child: Text(t,
+                                                overflow: TextOverflow.ellipsis)),
+                                    ],
+                                    onChanged: (v) =>
+                                        setState(() => _selectedTask = v),
+                                  ),
+                                const SizedBox(height: Insets.sm),
+                                TextField(
+                                  controller: _intentionController,
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
+                                  decoration: const InputDecoration(
+                                    labelText: 'What will done look like?',
+                                    isDense: true,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: Insets.lg),
                       Text(
                         '$_completedPomodoros session${_completedPomodoros == 1 ? '' : 's'} completed',
