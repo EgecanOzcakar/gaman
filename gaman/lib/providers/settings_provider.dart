@@ -1,51 +1,51 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
-/// User-tunable defaults for the meditation and focus timers.
-/// Theme lives in [ThemeProvider]; the daily reminder lives in
-/// [NotificationProvider]. This only holds what those don't.
+import 'package:flutter/foundation.dart';
+
+import '../data/models.dart';
+import '../data/repository.dart';
+
+/// Timer defaults, backed by [Repository.watchSettings].
 class SettingsProvider with ChangeNotifier {
-  static const _kMeditationMinutes = 'settings_meditation_minutes';
-  static const _kBreathSeconds = 'settings_breath_seconds';
-  static const _kFocusMinutes = 'settings_focus_minutes';
-  static const _kLongBreakEvery = 'settings_long_break_every';
-
-  int _meditationMinutes = 10;
-  int _breathSeconds = 4;
-  int _focusMinutes = 25;
-  int _longBreakEvery = 4;
-
-  int get meditationMinutes => _meditationMinutes;
-  int get breathSeconds => _breathSeconds;
-  int get focusMinutes => _focusMinutes;
-  int get longBreakEvery => _longBreakEvery;
-
-  SettingsProvider() {
-    _load();
+  SettingsProvider(this._repo) {
+    ready = _subscribe();
   }
 
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    _meditationMinutes = prefs.getInt(_kMeditationMinutes) ?? _meditationMinutes;
-    _breathSeconds = prefs.getInt(_kBreathSeconds) ?? _breathSeconds;
-    _focusMinutes = prefs.getInt(_kFocusMinutes) ?? _focusMinutes;
-    _longBreakEvery = prefs.getInt(_kLongBreakEvery) ?? _longBreakEvery;
-    notifyListeners();
-  }
+  final Repository _repo;
+  late final Future<void> ready;
+  StreamSubscription<AppSettings>? _sub;
+  AppSettings _s = const AppSettings();
 
-  Future<void> _set(String key, int value, void Function() apply) async {
-    apply();
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(key, value);
+  int get meditationMinutes => _s.meditationMinutes;
+  int get breathSeconds => _s.breathSeconds;
+  int get focusMinutes => _s.focusMinutes;
+  int get longBreakEvery => _s.longBreakEvery;
+  int get completedPomodoros => _s.completedPomodoros;
+
+  Future<void> _subscribe() async {
+    final c = Completer<void>();
+    _sub = _repo.watchSettings().listen((s) {
+      _s = s;
+      notifyListeners();
+      if (!c.isCompleted) c.complete();
+    });
+    return c.future;
   }
 
   Future<void> setMeditationMinutes(int v) =>
-      _set(_kMeditationMinutes, v, () => _meditationMinutes = v);
+      _repo.saveSettings(_s.copyWith(meditationMinutes: v));
   Future<void> setBreathSeconds(int v) =>
-      _set(_kBreathSeconds, v, () => _breathSeconds = v);
+      _repo.saveSettings(_s.copyWith(breathSeconds: v));
   Future<void> setFocusMinutes(int v) =>
-      _set(_kFocusMinutes, v, () => _focusMinutes = v);
+      _repo.saveSettings(_s.copyWith(focusMinutes: v));
   Future<void> setLongBreakEvery(int v) =>
-      _set(_kLongBreakEvery, v, () => _longBreakEvery = v);
+      _repo.saveSettings(_s.copyWith(longBreakEvery: v));
+  Future<void> setCompletedPomodoros(int v) =>
+      _repo.saveSettings(_s.copyWith(completedPomodoros: v));
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
 }

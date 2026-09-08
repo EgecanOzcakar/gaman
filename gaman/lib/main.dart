@@ -76,7 +76,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
             create: (ctx) => ActivityLog(ctx.read<Repository>())),
         ChangeNotifierProvider(create: (_) => FeaturePrefs()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(
+            create: (ctx) => SettingsProvider(ctx.read<Repository>())),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

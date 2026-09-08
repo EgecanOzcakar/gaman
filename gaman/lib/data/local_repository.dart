@@ -50,6 +50,25 @@ class LocalRepository implements Repository {
     _settings.add(_settingsCache);
   }
 
+  /// Emits [current] immediately on listen, then every value from [updates].
+  /// Subscribes to [updates] synchronously in `onListen` so a write that lands
+  /// right after `watch*()` returns is not missed (a plain `async*` generator
+  /// would still be between its first `yield` and `yield*` at that point).
+  static Stream<T> _watch<T>(T Function() current, Stream<T> updates) {
+    late final StreamController<T> controller;
+    StreamSubscription<T>? sub;
+    controller = StreamController<T>(
+      onListen: () {
+        controller.add(current());
+        sub = updates.listen(controller.add, onError: controller.addError);
+      },
+      onPause: () => sub?.pause(),
+      onResume: () => sub?.resume(),
+      onCancel: () => sub?.cancel(),
+    );
+    return controller.stream;
+  }
+
   List<T> _decodeList<T>(String key, T Function(Map<String, dynamic>) fromJson) =>
       (_prefs.getStringList(key) ?? [])
           .map((s) {
@@ -65,10 +84,8 @@ class LocalRepository implements Repository {
   // --- journal ------------------------------------------------------------
 
   @override
-  Stream<List<JournalEntry>> watchJournal() async* {
-    yield _journalCache;
-    yield* _journal.stream;
-  }
+  Stream<List<JournalEntry>> watchJournal() =>
+      _watch(() => _journalCache, _journal.stream);
 
   @override
   Future<void> upsertJournalEntry(JournalEntry entry) async {
@@ -97,12 +114,11 @@ class LocalRepository implements Repository {
       _tasks.putIfAbsent(key, () => StreamController.broadcast());
 
   @override
-  Stream<List<TodoTask>> watchTasks(DateTime day) async* {
+  Stream<List<TodoTask>> watchTasks(DateTime day) {
     final key = _dayKey(day);
     _taskCache[key] ??=
         _decodeList('todo_tasks_$key', (m) => TodoTask.fromJson(m));
-    yield _taskCache[key]!;
-    yield* _taskController(key).stream;
+    return _watch(() => _taskCache[key]!, _taskController(key).stream);
   }
 
   @override
@@ -117,10 +133,8 @@ class LocalRepository implements Repository {
   // --- activity --------------------------------------------------------
 
   @override
-  Stream<List<ActivityEvent>> watchActivity() async* {
-    yield _activityCache;
-    yield* _activity.stream;
-  }
+  Stream<List<ActivityEvent>> watchActivity() =>
+      _watch(() => _activityCache, _activity.stream);
 
   @override
   Future<void> addActivity(ActivityEvent event) async {
@@ -134,10 +148,8 @@ class LocalRepository implements Repository {
   // --- settings -------------------------------------------------------
 
   @override
-  Stream<AppSettings> watchSettings() async* {
-    yield _settingsCache;
-    yield* _settings.stream;
-  }
+  Stream<AppSettings> watchSettings() =>
+      _watch(() => _settingsCache, _settings.stream);
 
   @override
   Future<void> saveSettings(AppSettings s) async {
