@@ -18,13 +18,16 @@ entirely on `LocalRepository` — every cloud-sync PR is inert.
    writes `lib/firebase_options.dart` and `android/app/google-services.json`.
 5. **Use the config** — in `lib/main.dart`, change
    `Firebase.initializeApp()` → `Firebase.initializeApp(options:
-   DefaultFirebaseOptions.currentPlatform)` (the `TODO(cloud-sync)` marker).
+   DefaultFirebaseOptions.currentPlatform)` (the `TODO(cloud-sync)` marker),
+   and add `import 'firebase_options.dart';` at the top of `lib/main.dart`
+   (the file `flutterfire configure` writes is `lib/firebase_options.dart`).
 6. **Authorised domains** — Authentication → Settings → Authorized domains →
    add `egecanozcakar.github.io` (the GitHub Pages deploy).
 7. **Deploy the rules** —
    ```
    npm i -g firebase-tools
    firebase login
+   cd gaman   # firebase.json lives here
    firebase deploy --only firestore:rules --project gaman
    ```
    Re-run step 7 whenever `firestore.rules` changes.
