@@ -274,6 +274,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
+                    "What's stored: your journal, tasks, activity history and "
+                    'app settings. When you sign in, a copy is kept in your '
+                    'Google-linked account so it survives reinstalling the app. '
+                    'It is not shared with anyone.',
+                    style: TextStyle(height: 1.4),
+                  ),
+                  const SizedBox(height: Insets.md),
+                  const Text(
                     'Everything is stored on this device. Export a copy to '
                     'keep somewhere safe or move to another phone.',
                   ),
