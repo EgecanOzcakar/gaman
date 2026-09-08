@@ -8,7 +8,6 @@ import '../journal_templates.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
-import '../widgets/persistent_audio_control.dart';
 import 'journal_prompt_screen.dart';
 
 class JournalEntry {
@@ -177,9 +176,7 @@ class _JournalScreenState extends State<JournalScreen> {
       appBar: AppBar(
         title: const Text('Journal'),
       ),
-      body: Stack(
-        children: [
-          Column(
+      body: Column(
             children: [
               SizedBox(
                 height: 52,
@@ -375,16 +372,7 @@ class _JournalScreenState extends State<JournalScreen> {
                 ),
               ),
             ],
-          ),
-          // Persistent Audio Control at the bottom
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: PersistentAudioControl(),
-          ),
-        ],
       ),
     );
   }
-} 
+}
