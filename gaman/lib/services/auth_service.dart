@@ -76,8 +76,10 @@ class AuthService extends ChangeNotifier {
       return LinkResult.failed;
     }
     if (cred == null) return LinkResult.cancelled;
+    final user = a.currentUser;
+    if (user == null) return LinkResult.failed;
     try {
-      await a.currentUser!.linkWithCredential(cred);
+      await user.linkWithCredential(cred);
       notifyListeners();
       return LinkResult.linked;
     } on FirebaseAuthException catch (e) {
