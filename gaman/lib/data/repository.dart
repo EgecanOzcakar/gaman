@@ -1,4 +1,5 @@
 import 'models.dart';
+import 'sync_status.dart';
 
 /// One home for every piece of user data. `LocalRepository` (SharedPreferences)
 /// is the implementation now; a Firestore one arrives later without any change
@@ -21,6 +22,10 @@ abstract class Repository {
 
   Stream<AppSettings> watchSettings();
   Future<void> saveSettings(AppSettings settings);
+
+  /// Whether writes have reached the server. `localOnly` when there is no
+  /// cloud backend.
+  Stream<SyncStatus> watchSyncStatus();
 
   Future<void> dispose();
 }

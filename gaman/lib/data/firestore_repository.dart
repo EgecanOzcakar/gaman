@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'models.dart';
 import 'repository.dart';
+import 'sync_status.dart';
 
 /// [Repository] backed by Cloud Firestore under `users/{uid}/…`.
 /// Firestore's local cache provides offline reads/writes — this class does no
@@ -97,6 +98,15 @@ class FirestoreRepository implements Repository {
   @override
   Future<void> addActivity(ActivityEvent event) =>
       _activityCol.add(event.toJson());
+
+  @override
+  Stream<SyncStatus> watchSyncStatus() => _settingsDoc
+      .snapshots(includeMetadataChanges: true)
+      .map((s) => statusFromMetadata((
+            hasPendingWrites: s.metadata.hasPendingWrites,
+            isFromCache: s.metadata.isFromCache,
+          )))
+      .asBroadcastStream();
 
   @override
   Future<void> dispose() async {}
