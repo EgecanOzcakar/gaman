@@ -70,7 +70,8 @@ class MyApp extends StatelessWidget {
           dispose: (_, r) => r.dispose(),
         ),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(
+            create: (ctx) => NotificationProvider(ctx.read<Repository>())),
         ChangeNotifierProvider(
             create: (ctx) => ThemeProvider(ctx.read<Repository>())),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
