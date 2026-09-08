@@ -33,7 +33,8 @@ class FirestoreRepository implements Repository {
   @override
   Stream<List<JournalEntry>> watchJournal() =>
       _journalCol.orderBy('date', descending: true).snapshots().map((snap) =>
-          snap.docs.map((d) => JournalEntry.fromJson(d.data())).toList());
+          snap.docs.map((d) => JournalEntry.fromJson(d.data())).toList())
+          .asBroadcastStream();
 
   @override
   Future<void> upsertJournalEntry(JournalEntry entry) =>
@@ -49,7 +50,7 @@ class FirestoreRepository implements Repository {
 
   @override
   Stream<AppSettings> watchSettings() => _settingsDoc.snapshots().map(
-      (d) => AppSettings.fromJson(d.data() ?? const {}));
+      (d) => AppSettings.fromJson(d.data() ?? const {})).asBroadcastStream();
 
   @override
   Future<void> saveSettings(AppSettings settings) => _settingsDoc.set({
@@ -65,7 +66,8 @@ class FirestoreRepository implements Repository {
       .snapshots()
       .map((d) => ((d.data()?['tasks'] as List?) ?? const [])
           .map((e) => TodoTask.fromJson((e as Map).cast<String, dynamic>()))
-          .toList());
+          .toList())
+      .asBroadcastStream();
 
   @override
   Future<void> saveTasks(DateTime day, List<TodoTask> tasks) =>
@@ -77,7 +79,8 @@ class FirestoreRepository implements Repository {
   @override
   Stream<List<ActivityEvent>> watchActivity() =>
       _activityCol.orderBy('at').snapshots().map((snap) =>
-          snap.docs.map((d) => ActivityEvent.fromJson(d.data())).toList());
+          snap.docs.map((d) => ActivityEvent.fromJson(d.data())).toList())
+          .asBroadcastStream();
 
   @override
   Future<void> addActivity(ActivityEvent event) =>

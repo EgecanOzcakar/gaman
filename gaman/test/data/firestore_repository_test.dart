@@ -76,6 +76,24 @@ void main() {
     expect(await repo.watchTasks(DateTime(2026, 5, 5)).first, isEmpty);
   });
 
+  test('tasks doc shape: {tasks: [...], updatedAt}', () async {
+    final day = DateTime(2026, 3, 4);
+    await repo.saveTasks(day, [
+      TodoTask(id: 'm', title: 'frog', isMainTask: true, createdAt: day),
+    ]);
+    final raw = (await db.doc('users/u1/tasks/2026-03-04').get()).data()!;
+    expect(raw.keys.toSet(), {'tasks', 'updatedAt'});
+    expect((raw['tasks'] as List).single['title'], 'frog');
+  });
+
+  test('settings doc shape matches AppSettings.toJson + updatedAt', () async {
+    await repo.saveSettings(const AppSettings().copyWith(focusMinutes: 40));
+    final raw = (await db.doc('users/u1/profile/settings').get()).data()!;
+    expect(raw['focusMinutes'], 40);
+    expect(raw['themeMode'], 'system');
+    expect(raw.containsKey('updatedAt'), isTrue);
+  });
+
   test('activity: add appends, watch is oldest-first', () async {
     await repo.addActivity(ActivityEvent(
         type: ActivityType.focus, at: DateTime(2026, 1, 2), durationSeconds: 1500));
