@@ -20,6 +20,18 @@ class FirestoreRepository implements Repository {
       _db.doc('users/$_uid/profile/settings');
   CollectionReference<Map<String, dynamic>> get _activityCol =>
       _db.collection('users/$_uid/activity');
+  DocumentReference<Map<String, dynamic>> get _migrationDoc =>
+      _db.doc('users/$_uid/profile/migration');
+
+  Future<bool> hasMigrated() async => (await _migrationDoc.get()).exists;
+
+  Future<void> markMigrated() => _migrationDoc.set({
+        'done': true,
+        'at': FieldValue.serverTimestamp(),
+      });
+
+  Future<void> putActivityAt(String id, ActivityEvent event) =>
+      _activityCol.doc(id).set(event.toJson());
 
   static String _dayKey(DateTime day) {
     final d = DateTime(day.year, day.month, day.day);

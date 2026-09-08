@@ -20,6 +20,7 @@ import 'providers/settings_provider.dart';
 import 'data/local_repository.dart';
 import 'data/repository.dart';
 import 'data/firestore_repository.dart';
+import 'data/local_to_firestore_migration.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -37,6 +38,14 @@ void main() async {
   final Repository repository = auth.uid != null
       ? FirestoreRepository(uid: auth.uid!)
       : LocalRepository();
+
+  if (repository is FirestoreRepository) {
+    try {
+      await LocalToFirestoreMigration(remote: repository).run();
+    } catch (e) {
+      debugPrint('Local→Firestore migration failed (will retry next launch): $e');
+    }
+  }
 
   // Initialize notifications (only on mobile platforms)
   if (!kIsWeb) {

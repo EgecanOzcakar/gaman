@@ -103,4 +103,20 @@ void main() {
     expect(list.map((e) => e.type),
         [ActivityType.journal, ActivityType.focus]);
   });
+
+  test('hasMigrated is false until markMigrated', () async {
+    expect(await repo.hasMigrated(), isFalse);
+    await repo.markMigrated();
+    expect(await repo.hasMigrated(), isTrue);
+    final raw = (await db.doc('users/u1/profile/migration').get()).data()!;
+    expect(raw['done'], isTrue);
+  });
+
+  test('putActivityAt writes at a fixed id (re-run overwrites)', () async {
+    final ev = ActivityEvent(
+        type: ActivityType.focus, at: DateTime(2026, 1, 1), durationSeconds: 60);
+    await repo.putActivityAt('fixed-1', ev);
+    await repo.putActivityAt('fixed-1', ev);
+    expect(await repo.watchActivity().first, hasLength(1));
+  });
 }
