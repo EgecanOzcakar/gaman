@@ -30,9 +30,17 @@ expect their history to survive both.
 | Question | Decision |
 |---|---|
 | Backend | **Firebase** — Auth + Cloud Firestore |
-| Auth model | **Anonymous-first**, with later linking to Google / Apple / email |
+| Auth model | **Anonymous-first**; link to **Google** or **email-link** (passwordless) |
+| Platforms | **Android + web now.** iOS deferred — auth layer built so Sign in with Apple slots in without rework |
+| Sign in with Apple | Not in this work (no paid Apple Developer account yet) |
 | Sync granularity | **Per-record**, behind a repository layer |
-| Timing | Spec now; implement after the current PR stack lands on `main` |
+| Privacy | Short plain-language note in Settings — what is stored and where. Not a legal document |
+| Manual export (#24) | Kept as the provider-independent backstop |
+| Timing | Implement after the current PR stack lands on `main` (Phase 0 / #35) |
+
+App context: personal / small-circle tool, not an App Store launch. That
+lowers the bar on store listings and Apple-review pressure but not on the
+sync itself — the user's own phone + tablet + a few friends still need it.
 
 Firestore is chosen over Supabase/PocketBase for one reason: its offline
 persistence is transparent and battle-tested. The SDK writes to a local cache
@@ -103,9 +111,14 @@ snapshots.
   - anonymous → "Your progress is on this device only. [Back up to an account]"
   - linked → "Backed up as <email/name>. [Sign out]"
 - **Link** (`currentUser.linkWithCredential`): keeps the same uid, so all data
-  stays put and becomes recoverable elsewhere.
+  stays put and becomes recoverable elsewhere. Providers offered: Google
+  (`google_sign_in`) and email-link (Firebase passwordless — user enters an
+  email, taps a link, no password to manage).
 - **Sign in on a second device**: same uid → Firestore streams the existing
   data down into the local cache.
+- **Sign in with Apple** is not built now. `AuthService` exposes
+  `link(provider)` / `signIn(provider)` over an enum so an `apple` case can be
+  added later without touching call sites or the UI structure.
 
 ## Data model (Firestore)
 
@@ -210,14 +223,14 @@ activity is per-record, not one blob, there is no per-document ceiling to hit.
 `flutterfire configure` generates `lib/firebase_options.dart` and most native
 wiring. Manual pieces:
 
-- **iOS**: `GoogleService-Info.plist`; min iOS 13; "Sign in with Apple"
-  capability (Apple requires it once Google sign-in is offered). Needs an Apple
-  Developer account.
 - **Android**: `google-services.json`; SHA-1 / SHA-256 signing fingerprints
   registered for Google sign-in; min SDK 23.
 - **Web**: config in `firebase_options.dart`; add the GitHub Pages origin
   (`egecanozcakar.github.io`) to Firebase Auth authorised domains. Deploy
   target confirmed from `.github/workflows/deploy.yml` (gh-pages).
+- **iOS**: deferred. When it happens: `GoogleService-Info.plist`, min iOS 13,
+  add the Apple provider and the "Sign in with Apple" capability (Apple
+  requires it once Google sign-in ships on iOS).
 
 ## Testing
 
@@ -231,27 +244,35 @@ wiring. Manual pieces:
 
 ## Rollout
 
-Branch off `main` **after** the current stack (#12, #13, #14/#15, #22–#28)
-merges — this rewrites the data layer they all touch.
+Branch off `main` **after** Phase 0 (#35) lands — this rewrites the data layer
+touched by everything merged so far.
 
 Sequenced PRs:
 
-1. `firebase_core` + `firebase_auth`; `Firebase.initializeApp`; anonymous
-   auth; `firebase_options.dart`. No behaviour change yet.
-2. `Repository` + `models.dart` + `local_repository`; move `JournalEntry` /
-   `TodoTask` / `ActivityEvent` into `models.dart`; refactor providers onto the
-   repository. Still `SharedPreferences`, still offline-only — shippable, low
-   risk, no user-visible change.
-3. `firestore_repository`; make it the runtime default; deploy security rules.
-4. Migration on first run.
-5. Account-linking UI in Settings (Google / Apple / email link + sign out).
-6. Sync-status indicator (optional).
+1. **Repository layer, no backend.** `lib/data/`: `models.dart` (move
+   `JournalEntry` / `TodoTask` / `ActivityEvent` out of the screen files),
+   `Repository` interface, `LocalRepository` (SharedPreferences, wrapping
+   today's logic). Refactor `ActivityLog` / `SettingsProvider` / `FeaturePrefs`
+   / `ThemeProvider` / notification fields onto it. Still offline-only, no
+   user-visible change — the biggest diff, lowest risk, ships on its own.
+2. **Firebase bootstrap.** `firebase_core` + `firebase_auth`;
+   `flutterfire configure` (Android + web); `Firebase.initializeApp` guarded
+   so a failure falls back to `LocalRepository`; `AuthService` with
+   anonymous-first sign-in. No data goes to the cloud yet.
+3. **`FirestoreRepository`.** Implement against the data model; make it the
+   runtime repository when Firebase is up; commit `firestore.rules` and the
+   deploy step for them.
+4. **Migration.** One-time copy of legacy SharedPreferences data to Firestore
+   under the uid; set `migrated`; clear legacy keys.
+5. **Account UI.** Settings "Back up your progress": Google + email-link,
+   sign-out, the `credential-already-in-use` merge chooser, and the
+   plain-language privacy note.
+6. **Sync-status indicator** (optional): "syncing / offline / backed up" line
+   from `SnapshotMetadata`.
 
-## Open questions for review
+## Resolved (was: open questions)
 
-1. Apple Developer account available? Required for Sign in with Apple and iOS
-   Firebase. If not, ship Android + web first, iOS follows.
-2. Email linking method — email-link (passwordless, no password UI) vs
-   email/password. Recommend email-link.
-3. Keep #24 "Export all data" as a manual backup alongside cloud sync?
-   Recommend yes — it is the provider-independent escape hatch.
+1. **Apple Developer account** — none yet. Android + web only. `AuthService`
+   is written so `apple` is an added enum case later, not a refactor.
+2. **Email method** — email-link (passwordless).
+3. **#24 export** — kept.
