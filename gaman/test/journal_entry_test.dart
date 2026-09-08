@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gaman/screens/journal_screen.dart';
+import 'package:gaman/data/models.dart';
 
 void main() {
   test('free entry round-trips and defaults type to "free"', () {
