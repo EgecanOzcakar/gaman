@@ -1,55 +1,15 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../data/models.dart';
+import '../data/repository.dart';
 import '../journal_templates.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import 'journal_prompt_screen.dart';
-
-class JournalEntry {
-  final String id;
-  final String content;
-  final DateTime date;
-  final String mood;
-
-  /// Template id: 'free', 'gratitude', 'evening', 'thought_record', 'woop'.
-  final String type;
-
-  /// For structured entries: label -> answer, in order. Null for free text.
-  final Map<String, String>? sections;
-
-  JournalEntry({
-    required this.id,
-    required this.content,
-    required this.date,
-    required this.mood,
-    this.type = 'free',
-    this.sections,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'content': content,
-        'date': date.toIso8601String(),
-        'mood': mood,
-        'type': type,
-        if (sections != null) 'sections': sections,
-      };
-
-  factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
-        id: json['id'],
-        content: json['content'],
-        date: DateTime.parse(json['date']),
-        mood: json['mood'],
-        type: json['type'] as String? ?? 'free',
-        sections: (json['sections'] as Map?)?.map(
-            (k, v) => MapEntry(k.toString(), v.toString())),
-      );
-}
 
 class JournalScreen extends StatefulWidget {
   const JournalScreen({super.key});
@@ -64,50 +24,31 @@ class _JournalScreenState extends State<JournalScreen> {
   final _contentController = TextEditingController();
   String _selectedMood = '😊';
   bool _isLoading = true;
+  StreamSubscription<List<JournalEntry>>? _sub;
 
   final List<String> _moods = ['😊', '😐', '😢', '😡', '😴', '🤔'];
 
   @override
   void initState() {
     super.initState();
-    _loadEntries();
+    _sub = context.read<Repository>().watchJournal().listen((entries) {
+      if (mounted) {
+        setState(() {
+          _entries
+            ..clear()
+            ..addAll(entries)
+            ..sort((a, b) => b.date.compareTo(a.date));
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _sub?.cancel();
     _contentController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadEntries() async {
-    setState(() => _isLoading = true);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final stored = prefs.getStringList('journal_entries') ?? [];
-      setState(() {
-        _entries
-          ..clear()
-          ..addAll(stored.map((s) {
-            try {
-              return JournalEntry.fromJson(
-                  jsonDecode(s) as Map<String, dynamic>);
-            } catch (_) {
-              return null;
-            }
-          }).whereType<JournalEntry>())
-          ..sort((a, b) => b.date.compareTo(a.date));
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('Error loading entries: $e');
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _persist() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('journal_entries',
-        _entries.map((e) => jsonEncode(e.toJson())).toList());
   }
 
   Future<void> _saveEntry() async {
@@ -120,19 +61,14 @@ class _JournalScreenState extends State<JournalScreen> {
       mood: _selectedMood,
     );
 
-    setState(() {
-      _entries.insert(0, entry);
-    });
-
     _contentController.clear();
     _selectedMood = '😊';
 
     context.read<ActivityLog>().log(ActivityType.journal);
-
     try {
-      await _persist();
+      await context.read<Repository>().upsertJournalEntry(entry);
     } catch (e) {
-      debugPrint('Error saving entry: $e');
+      debugPrint('Failed to save journal entry: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not save the entry')),
@@ -148,23 +84,12 @@ class _JournalScreenState extends State<JournalScreen> {
           builder: (_) => JournalPromptScreen(template: template)),
     );
     if (entry == null) return;
-    setState(() => _entries.insert(0, entry));
     if (mounted) context.read<ActivityLog>().log(ActivityType.journal);
-    try {
-      await _persist();
-    } catch (e) {
-      debugPrint('Error saving entry: $e');
-    }
+    await context.read<Repository>().upsertJournalEntry(entry);
   }
 
-  Future<void> _deleteEntry(JournalEntry entry) async {
-    setState(() => _entries.removeWhere((e) => e.id == entry.id));
-    try {
-      await _persist();
-    } catch (e) {
-      debugPrint('Error deleting entry: $e');
-    }
-  }
+  Future<void> _deleteEntry(JournalEntry entry) =>
+      context.read<Repository>().deleteJournalEntry(entry.id);
 
   String _formatDate(DateTime date) {
     return DateFormat.yMMMd().add_jm().format(date);

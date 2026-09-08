@@ -16,6 +16,8 @@ import 'providers/audio_provider.dart';
 import 'providers/activity_log.dart';
 import 'providers/feature_prefs.dart';
 import 'providers/settings_provider.dart';
+import 'data/local_repository.dart';
+import 'data/repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,13 +65,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<Repository>(
+          create: (_) => LocalRepository(),
+          dispose: (_, r) => r.dispose(),
+        ),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(
+            create: (ctx) => NotificationProvider(ctx.read<Repository>())),
+        ChangeNotifierProvider(
+            create: (ctx) => ThemeProvider(ctx.read<Repository>())),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
-        ChangeNotifierProvider(create: (_) => ActivityLog()),
-        ChangeNotifierProvider(create: (_) => FeaturePrefs()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(
+            create: (ctx) => ActivityLog(ctx.read<Repository>())),
+        ChangeNotifierProvider(
+            create: (ctx) => FeaturePrefs(ctx.read<Repository>())),
+        ChangeNotifierProvider(
+            create: (ctx) => SettingsProvider(ctx.read<Repository>())),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

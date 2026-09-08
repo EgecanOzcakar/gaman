@@ -1,10 +1,10 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
+import '../data/models.dart';
+import '../data/repository.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
@@ -12,42 +12,6 @@ import '../widgets/persistent_audio_control.dart';
 import '../services/gemini_service.dart';
 import '../widgets/generate_tasks_dialog.dart';
 import 'settings_screen.dart';
-
-class TodoTask {
-  final String id;
-  String title;
-  bool isCompleted;
-  final bool isMainTask;
-  final DateTime createdAt;
-
-  TodoTask({
-    required this.id,
-    required this.title,
-    this.isCompleted = false,
-    required this.isMainTask,
-    required this.createdAt,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'isCompleted': isCompleted,
-      'isMainTask': isMainTask,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-
-  factory TodoTask.fromJson(Map<String, dynamic> json) {
-    return TodoTask(
-      id: json['id'],
-      title: json['title'],
-      isCompleted: json['isCompleted'] ?? false,
-      isMainTask: json['isMainTask'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-    );
-  }
-}
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -63,13 +27,53 @@ class _TodoScreenState extends State<TodoScreen> {
   final GeminiService _geminiService = GeminiService();
   bool _isGeneratingTasks = false;
   bool _isAiConfigured = false;
+  StreamSubscription<List<TodoTask>>? _sub;
+
+  DateTime get _today => DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    _loadTasks();
     _checkAiConfiguration();
+    _sub = context.read<Repository>().watchTasks(_today).listen((tasks) {
+      if (!mounted) return;
+      final next = tasks.isEmpty ? _seedTasks() : tasks;
+      var sameStructure = _tasks.length == next.length;
+      for (var i = 0; sameStructure && i < next.length; i++) {
+        sameStructure = _tasks[i].id == next[i].id;
+      }
+      if (sameStructure) {
+        // Echo of our own write — refresh fields in place, leave the live
+        // TextEditingControllers alone so typing doesn't lose the cursor.
+        setState(() {
+          for (var i = 0; i < next.length; i++) {
+            _tasks[i].title = next[i].title;
+            _tasks[i].isCompleted = next[i].isCompleted;
+          }
+        });
+      } else {
+        setState(() {
+          _tasks
+            ..clear()
+            ..addAll(next);
+        });
+        _initializeControllers();
+      }
+    });
   }
+
+  List<TodoTask> _seedTasks() => [
+        TodoTask(
+            id: 'main_${DateTime.now().millisecondsSinceEpoch}',
+            title: '',
+            isMainTask: true,
+            createdAt: DateTime.now()),
+        TodoTask(
+            id: 'cruise_1_${DateTime.now().millisecondsSinceEpoch}',
+            title: '',
+            isMainTask: false,
+            createdAt: DateTime.now()),
+      ];
 
   Future<void> _checkAiConfiguration() async {
     try {
@@ -90,50 +94,12 @@ class _TodoScreenState extends State<TodoScreen> {
 
   @override
   void dispose() {
+    _sub?.cancel();
     _mainTaskController.dispose();
     for (var controller in _cruiseTaskControllers) {
       controller.dispose();
     }
     super.dispose();
-  }
-
-  Future<void> _loadTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final tasksJson = prefs.getStringList('todo_tasks_$today') ?? [];
-    
-    setState(() {
-      _tasks.clear();
-      if (tasksJson.isNotEmpty) {
-        for (final taskJson in tasksJson) {
-          try {
-            _tasks.add(TodoTask.fromJson(
-                jsonDecode(taskJson) as Map<String, dynamic>));
-          } catch (e) {
-            debugPrint('Error loading task: $e');
-          }
-        }
-      } else {
-        // Initialize with main task and one cruise task
-        _tasks.addAll([
-          TodoTask(
-            id: 'main_${DateTime.now().millisecondsSinceEpoch}',
-            title: '',
-            isMainTask: true,
-            createdAt: DateTime.now(),
-          ),
-          TodoTask(
-            id: 'cruise_1_${DateTime.now().millisecondsSinceEpoch}',
-            title: '',
-            isMainTask: false,
-            createdAt: DateTime.now(),
-          ),
-        ]);
-      }
-    });
-
-    // Initialize controllers
-    _initializeControllers();
   }
 
   void _initializeControllers() {
@@ -189,13 +155,8 @@ class _TodoScreenState extends State<TodoScreen> {
     }
   }
 
-  Future<void> _saveTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final tasksJson =
-        _tasks.map((task) => jsonEncode(task.toJson())).toList();
-    await prefs.setStringList('todo_tasks_$today', tasksJson);
-  }
+  Future<void> _saveTasks() =>
+      context.read<Repository>().saveTasks(_today, _tasks);
 
   void _toggleTask(TodoTask task) {
     setState(() => task.isCompleted = !task.isCompleted);

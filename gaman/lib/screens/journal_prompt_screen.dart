@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../journal_templates.dart';
 import '../theme/app_theme.dart';
-import 'journal_screen.dart';
+import '../data/models.dart';
 
 /// Compose a structured journal entry from a [JournalTemplate]. Pops with the
 /// finished [JournalEntry], or null if cancelled.
