@@ -71,7 +71,8 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(
+            create: (ctx) => ThemeProvider(ctx.read<Repository>())),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
         ChangeNotifierProvider(
             create: (ctx) => ActivityLog(ctx.read<Repository>())),
