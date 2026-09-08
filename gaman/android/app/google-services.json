@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "215059104741",
+    "project_id": "gaman1",
+    "storage_bucket": "gaman1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215059104741:android:fbf08b8a848920878ea50c",
+        "android_client_info": {
+          "package_name": "com.gaman.gaman"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "215059104741-u9ahopgneupn687fhkt7j0m2p5b1ejqc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnZPl_NbUE3Fs9e6CeMvGrrgEQzkNP4Ek"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215059104741-u9ahopgneupn687fhkt7j0m2p5b1ejqc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

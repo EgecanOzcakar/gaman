@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 
 // Import providers
@@ -26,11 +27,12 @@ import 'services/auth_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // TODO(cloud-sync): switch to DefaultFirebaseOptions after `flutterfire configure`.
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
-    debugPrint('Firebase not configured; running local-only: $e');
+    debugPrint('Firebase init failed; running local-only: $e');
   }
 
   final auth = AuthService();
