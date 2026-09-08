@@ -71,8 +71,10 @@ class _FocusScreenState extends State<FocusScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final s = context.read<SettingsProvider>();
-    _selectedDuration = s.focusMinutes;
-    _completedPomodoros = s.completedPomodoros;
+    if (!_isPlaying) {
+      _selectedDuration = s.focusMinutes;
+      _completedPomodoros = s.completedPomodoros;
+    }
   }
 
   @override

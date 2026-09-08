@@ -37,12 +37,28 @@ class _TodoScreenState extends State<TodoScreen> {
     _checkAiConfiguration();
     _sub = context.read<Repository>().watchTasks(_today).listen((tasks) {
       if (!mounted) return;
-      setState(() {
-        _tasks
-          ..clear()
-          ..addAll(tasks.isEmpty ? _seedTasks() : tasks);
-      });
-      _initializeControllers();
+      final next = tasks.isEmpty ? _seedTasks() : tasks;
+      var sameStructure = _tasks.length == next.length;
+      for (var i = 0; sameStructure && i < next.length; i++) {
+        sameStructure = _tasks[i].id == next[i].id;
+      }
+      if (sameStructure) {
+        // Echo of our own write — refresh fields in place, leave the live
+        // TextEditingControllers alone so typing doesn't lose the cursor.
+        setState(() {
+          for (var i = 0; i < next.length; i++) {
+            _tasks[i].title = next[i].title;
+            _tasks[i].isCompleted = next[i].isCompleted;
+          }
+        });
+      } else {
+        setState(() {
+          _tasks
+            ..clear()
+            ..addAll(next);
+        });
+        _initializeControllers();
+      }
     });
   }
 
