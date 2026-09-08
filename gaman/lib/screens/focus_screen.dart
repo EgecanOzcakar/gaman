@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import '../data/repository.dart';
 import '../providers/activity_log.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
@@ -66,8 +64,15 @@ class _FocusScreenState extends State<FocusScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadSettings();
     _loadTodayTasks();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final s = context.read<SettingsProvider>();
+    _selectedDuration = s.focusMinutes;
+    _completedPomodoros = s.completedPomodoros;
   }
 
   @override
@@ -90,35 +95,20 @@ class _FocusScreenState extends State<FocusScreen>
     }
   }
 
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _selectedDuration = prefs.getInt('pomodoro_duration') ??
-          context.read<SettingsProvider>().focusMinutes;
-      _completedPomodoros = prefs.getInt('completed_pomodoros') ?? 0;
-    });
-  }
-
   Future<void> _loadTodayTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final titles = <String>[];
-    for (final s in prefs.getStringList('todo_tasks_$today') ?? const []) {
-      try {
-        final t = jsonDecode(s) as Map<String, dynamic>;
-        final title = (t['title'] as String?)?.trim() ?? '';
-        if (title.isNotEmpty) titles.add(title);
-      } catch (_) {}
+    final tasks =
+        await context.read<Repository>().watchTasks(DateTime.now()).first;
+    if (mounted) {
+      setState(() => _todayTasks = tasks
+          .map((t) => t.title.trim())
+          .where((s) => s.isNotEmpty)
+          .toList());
     }
-    if (mounted) setState(() => _todayTasks = titles);
   }
 
-  Future<void> _saveSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('pomodoro_duration', _selectedDuration);
-    await prefs.setInt('completed_pomodoros', _completedPomodoros);
-  }
+  Future<void> _saveSettings() => context
+      .read<SettingsProvider>()
+      .setCompletedPomodoros(_completedPomodoros);
 
   int get _totalSeconds =>
       (_isBreak
@@ -364,7 +354,9 @@ class _FocusScreenState extends State<FocusScreen>
                                           _selectedDuration = minutes;
                                           _remainingSeconds = minutes * 60;
                                         });
-                                        _saveSettings();
+                                        context
+                                            .read<SettingsProvider>()
+                                            .setFocusMinutes(minutes);
                                       }
                                     },
                                   );

@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
+import '../data/repository.dart';
 import '../providers/activity_log.dart';
 import '../providers/feature_prefs.dart';
 import '../providers/quote_provider.dart';
@@ -22,16 +19,10 @@ class TodayScreen extends StatefulWidget {
 
 class _TodayScreenState extends State<TodayScreen> {
   Future<String?> _loadFrog() async {
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    for (final s in prefs.getStringList('todo_tasks_$today') ?? const []) {
-      try {
-        final t = jsonDecode(s) as Map<String, dynamic>;
-        if (t['isMainTask'] == true &&
-            (t['title'] as String?)?.trim().isNotEmpty == true) {
-          return t['title'] as String;
-        }
-      } catch (_) {}
+    final tasks =
+        await context.read<Repository>().watchTasks(DateTime.now()).first;
+    for (final t in tasks) {
+      if (t.isMainTask && t.title.trim().isNotEmpty) return t.title;
     }
     return null;
   }
