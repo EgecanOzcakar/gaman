@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gaman/data/firestore_repository.dart';
 import 'package:gaman/data/models.dart';
+import 'package:gaman/data/sync_status.dart';
 
 void main() {
   late FakeFirebaseFirestore db;
@@ -118,5 +119,10 @@ void main() {
     await repo.putActivityAt('fixed-1', ev);
     await repo.putActivityAt('fixed-1', ev);
     expect(await repo.watchActivity().first, hasLength(1));
+  });
+
+  test('watchSyncStatus emits synced for a fake (server) snapshot', () async {
+    await repo.saveSettings(const AppSettings());
+    expect(await repo.watchSyncStatus().first, SyncStatus.synced);
   });
 }

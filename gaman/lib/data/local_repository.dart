@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models.dart';
 import 'repository.dart';
+import 'sync_status.dart';
 
 /// SharedPreferences-backed [Repository]. Holds everything in memory, mirrors
 /// writes to prefs using the app's existing keys and formats (see the plan's
@@ -205,6 +206,10 @@ class LocalRepository implements Repository {
           (_prefs.getStringList('disabled_features') ?? const []).toSet(),
     );
   }
+
+  @override
+  Stream<SyncStatus> watchSyncStatus() =>
+      Stream<SyncStatus>.value(SyncStatus.localOnly);
 
   // --- teardown -----------------------------------------------------
 

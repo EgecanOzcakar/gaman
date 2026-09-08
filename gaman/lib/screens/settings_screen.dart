@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../data/repository.dart';
+import '../data/sync_status.dart';
 import '../providers/feature_prefs.dart';
 import '../providers/notification_provider.dart';
 import '../providers/settings_provider.dart';
@@ -349,7 +351,15 @@ class _BackupSection extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.cloud_done_outlined),
                 title: Text('Backed up as ${auth.accountLabel ?? 'your account'}'),
-                subtitle: const Text('Your progress syncs across your devices.'),
+                subtitle: StreamBuilder<SyncStatus>(
+                  stream: context.read<Repository>().watchSyncStatus(),
+                  builder: (context, snap) => Text(switch (snap.data) {
+                    SyncStatus.syncing => 'Syncing…',
+                    SyncStatus.offline =>
+                      'Offline — changes are saved on this device',
+                    _ => 'Synced',
+                  }),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
