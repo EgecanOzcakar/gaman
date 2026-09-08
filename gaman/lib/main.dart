@@ -4,7 +4,8 @@ import 'theme/app_theme.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'screens/splash_screen.dart';
 
@@ -21,7 +22,14 @@ import 'data/repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // TODO(cloud-sync): switch to DefaultFirebaseOptions after `flutterfire configure`.
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase not configured; running local-only: $e');
+  }
+
   // Initialize notifications (only on mobile platforms)
   if (!kIsWeb) {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
