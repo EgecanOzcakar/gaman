@@ -19,6 +19,7 @@ import 'providers/feature_prefs.dart';
 import 'providers/settings_provider.dart';
 import 'data/local_repository.dart';
 import 'data/repository.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,6 +78,7 @@ class MyApp extends StatelessWidget {
           create: (_) => LocalRepository(),
           dispose: (_, r) => r.dispose(),
         ),
+        ChangeNotifierProvider(create: (_) => AuthService()..ensureSignedIn()),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
         ChangeNotifierProvider(
             create: (ctx) => NotificationProvider(ctx.read<Repository>())),
