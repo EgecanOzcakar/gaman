@@ -1,35 +1,49 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/models.dart';
+import '../data/repository.dart';
 
 /// Which practices show on the home screen. Everything is on by default;
 /// turning one off just hides its card (state is untouched).
 class FeaturePrefs with ChangeNotifier {
+  FeaturePrefs(this._repo) {
+    ready = _subscribe();
+  }
+
   static const ids = ['meditation', 'journal', 'binaural', 'focus', 'todo'];
 
-  final Set<String> _disabled = {};
+  final Repository _repo;
+  late final Future<void> ready;
+  StreamSubscription<AppSettings>? _sub;
+  AppSettings _s = const AppSettings();
 
-  bool isEnabled(String id) => !_disabled.contains(id);
+  bool isEnabled(String id) => !_s.disabledFeatures.contains(id);
 
-  FeaturePrefs() {
-    _load();
+  Future<void> _subscribe() async {
+    final c = Completer<void>();
+    _sub = _repo.watchSettings().listen((s) {
+      _s = s;
+      notifyListeners();
+      if (!c.isCompleted) c.complete();
+    });
+    return c.future;
   }
 
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    _disabled
-      ..clear()
-      ..addAll(prefs.getStringList('disabled_features') ?? const []);
-    notifyListeners();
-  }
-
-  Future<void> setEnabled(String id, bool enabled) async {
+  Future<void> setEnabled(String id, bool enabled) {
+    final next = {..._s.disabledFeatures};
     if (enabled) {
-      _disabled.remove(id);
+      next.remove(id);
     } else {
-      _disabled.add(id);
+      next.add(id);
     }
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('disabled_features', _disabled.toList());
+    return _repo.saveSettings(_s.copyWith(disabledFeatures: next));
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
   }
 }
