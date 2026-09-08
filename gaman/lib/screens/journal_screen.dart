@@ -65,7 +65,16 @@ class _JournalScreenState extends State<JournalScreen> {
     _selectedMood = '😊';
 
     context.read<ActivityLog>().log(ActivityType.journal);
-    await context.read<Repository>().upsertJournalEntry(entry);
+    try {
+      await context.read<Repository>().upsertJournalEntry(entry);
+    } catch (e) {
+      debugPrint('Failed to save journal entry: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not save the entry')),
+        );
+      }
+    }
   }
 
   Future<void> _addFromPrompt(JournalTemplate template) async {

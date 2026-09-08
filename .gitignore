@@ -1,0 +1,9 @@
+
+# SDD workspace (subagent-driven-development scratch)
+.superpowers/
+
+# Gradle build cache
+**/.gradle/
+
+# Flutter tooling
+devtools_options.yaml

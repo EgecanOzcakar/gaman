@@ -111,6 +111,26 @@ void main() {
     await r2.dispose();
   });
 
+  test('settings: saveSettings writes the exact legacy prefs keys/formats', () async {
+    final r = await repo();
+    await r.saveSettings(const AppSettings().copyWith(
+      themeMode: ThemeMode.dark,
+      focusMinutes: 40,
+      disabledFeatures: {'journal'},
+      reminderHour: 7,
+      reminderMinute: 30,
+    ));
+    await r.dispose();
+
+    final p = await SharedPreferences.getInstance();
+    expect(p.getString('theme_mode'), 'ThemeMode.dark');
+    expect(p.getInt('settings_focus_minutes'), 40);
+    expect(p.getInt('pomodoro_duration'), 40);
+    expect(p.getStringList('disabled_features'), ['journal']);
+    expect(p.getString('notification_time'), '7:30');
+    expect(p.getBool('notification_enabled'), true);
+  });
+
   test('settings: reads legacy individual keys', () async {
     SharedPreferences.setMockInitialValues({
       'theme_mode': 'ThemeMode.dark',
