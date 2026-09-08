@@ -52,6 +52,8 @@ dependencies:
   wakelock_plus: ^1.5.2
   firebase_core: ^4.14.0
   firebase_auth: ^6.6.1
+  cloud_firestore: ^6.9.0
+  google_sign_in: ^6.2.1  # pinned to v6; v7 renames the sign-in API — revisit when wiring a real Firebase project
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +66,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
   firebase_auth_mocks: ^0.15.2
+  fake_cloud_firestore: ^4.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
