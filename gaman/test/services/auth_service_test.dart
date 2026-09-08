@@ -38,6 +38,13 @@ void main() {
     expect(svc.isSignedIn, isFalse);
   });
 
+  test('signOut and dispose are safe no-ops when unavailable', () async {
+    final svc = AuthService(auth: null, resolveDefault: false);
+    await svc.signOut();      // must not throw
+    svc.dispose();            // must not throw
+    expect(svc.available, isFalse);
+  });
+
   test('notifies listeners on auth state change', () async {
     final mock = MockFirebaseAuth();
     final svc = AuthService(auth: mock);

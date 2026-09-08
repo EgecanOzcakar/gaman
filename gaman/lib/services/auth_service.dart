@@ -38,8 +38,8 @@ class AuthService extends ChangeNotifier {
     if (a == null || a.currentUser != null) return;
     try {
       await a.signInAnonymously();
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Anonymous sign-in failed: ${e.code}');
+    } catch (e) {
+      debugPrint('Anonymous sign-in failed: $e');
     }
     notifyListeners();
   }
