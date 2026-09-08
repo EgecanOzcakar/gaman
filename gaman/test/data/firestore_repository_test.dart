@@ -62,4 +62,27 @@ void main() {
     expect(s.focusMinutes, 40);
     expect(s.disabledFeatures, {'journal'});
   });
+
+  test('tasks: save then watch same calendar day', () async {
+    final day = DateTime(2026, 3, 4, 15);
+    await repo.saveTasks(day, [
+      TodoTask(id: 'm', title: 'frog', isMainTask: true, createdAt: day),
+    ]);
+    final list = await repo.watchTasks(DateTime(2026, 3, 4, 8)).first;
+    expect(list.single.title, 'frog');
+  });
+
+  test('tasks: absent day is empty', () async {
+    expect(await repo.watchTasks(DateTime(2026, 5, 5)).first, isEmpty);
+  });
+
+  test('activity: add appends, watch is oldest-first', () async {
+    await repo.addActivity(ActivityEvent(
+        type: ActivityType.focus, at: DateTime(2026, 1, 2), durationSeconds: 1500));
+    await repo.addActivity(ActivityEvent(
+        type: ActivityType.journal, at: DateTime(2026, 1, 1)));
+    final list = await repo.watchActivity().first;
+    expect(list.map((e) => e.type),
+        [ActivityType.journal, ActivityType.focus]);
+  });
 }

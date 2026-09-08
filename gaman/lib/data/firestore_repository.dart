@@ -18,6 +18,15 @@ class FirestoreRepository implements Repository {
       _db.collection('users/$_uid/journal');
   DocumentReference<Map<String, dynamic>> get _settingsDoc =>
       _db.doc('users/$_uid/profile/settings');
+  CollectionReference<Map<String, dynamic>> get _activityCol =>
+      _db.collection('users/$_uid/activity');
+
+  static String _dayKey(DateTime day) {
+    final d = DateTime(day.year, day.month, day.day);
+    final m = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '${d.year}-$m-$dd';
+  }
 
   // --- journal ----------------------------------------------------------
 
@@ -48,18 +57,31 @@ class FirestoreRepository implements Repository {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-  // --- filled in by Task 2 -----------------------------------------
+  // --- tasks + activity -------------------------------------------------
 
   @override
-  Stream<List<TodoTask>> watchTasks(DateTime day) =>
-      throw UnimplementedError();
+  Stream<List<TodoTask>> watchTasks(DateTime day) => _db
+      .doc('users/$_uid/tasks/${_dayKey(day)}')
+      .snapshots()
+      .map((d) => ((d.data()?['tasks'] as List?) ?? const [])
+          .map((e) => TodoTask.fromJson((e as Map).cast<String, dynamic>()))
+          .toList());
+
   @override
   Future<void> saveTasks(DateTime day, List<TodoTask> tasks) =>
-      throw UnimplementedError();
+      _db.doc('users/$_uid/tasks/${_dayKey(day)}').set({
+        'tasks': tasks.map((t) => t.toJson()).toList(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
   @override
-  Stream<List<ActivityEvent>> watchActivity() => throw UnimplementedError();
+  Stream<List<ActivityEvent>> watchActivity() =>
+      _activityCol.orderBy('at').snapshots().map((snap) =>
+          snap.docs.map((d) => ActivityEvent.fromJson(d.data())).toList());
+
   @override
-  Future<void> addActivity(ActivityEvent event) => throw UnimplementedError();
+  Future<void> addActivity(ActivityEvent event) =>
+      _activityCol.add(event.toJson());
 
   @override
   Future<void> dispose() async {}
