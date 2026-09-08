@@ -19,6 +19,7 @@ import 'providers/feature_prefs.dart';
 import 'providers/settings_provider.dart';
 import 'data/local_repository.dart';
 import 'data/repository.dart';
+import 'data/firestore_repository.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -30,6 +31,12 @@ void main() async {
   } catch (e) {
     debugPrint('Firebase not configured; running local-only: $e');
   }
+
+  final auth = AuthService();
+  await auth.ensureSignedIn();
+  final Repository repository = auth.uid != null
+      ? FirestoreRepository(uid: auth.uid!)
+      : LocalRepository();
 
   // Initialize notifications (only on mobile platforms)
   if (!kIsWeb) {
@@ -56,7 +63,7 @@ void main() async {
     await Permission.notification.request();
   }
   
-  runApp(const MyApp());
+  runApp(MyApp(repository: repository, auth: auth));
 }
 
 @pragma('vm:entry-point')
@@ -68,17 +75,17 @@ void callbackDispatcher() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.repository, required this.auth});
+
+  final Repository repository;
+  final AuthService auth;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<Repository>(
-          create: (_) => LocalRepository(),
-          dispose: (_, r) => r.dispose(),
-        ),
-        ChangeNotifierProvider(create: (_) => AuthService()..ensureSignedIn()),
+        Provider<Repository>.value(value: repository),
+        ChangeNotifierProvider<AuthService>.value(value: auth),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
         ChangeNotifierProvider(
             create: (ctx) => NotificationProvider(ctx.read<Repository>())),
