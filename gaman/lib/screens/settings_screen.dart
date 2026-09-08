@@ -4,6 +4,7 @@ import '../providers/feature_prefs.dart';
 import '../providers/notification_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/auth_service.dart';
 import '../services/data_export.dart';
 import '../services/gemini_service.dart';
 import '../theme/app_theme.dart';
@@ -81,6 +82,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(Insets.md),
         children: [
+          const _BackupSection(),
+          const SizedBox(height: Insets.lg),
           _Section(
             title: 'Appearance',
             child: Consumer<ThemeProvider>(
@@ -271,6 +274,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
+                    "What's stored: your journal, tasks, activity history and "
+                    'app settings. When you sign in, a copy is kept in your '
+                    'Google-linked account so it survives reinstalling the app. '
+                    'It is not shared with anyone.',
+                    style: TextStyle(height: 1.4),
+                  ),
+                  const SizedBox(height: Insets.md),
+                  const Text(
                     'Everything is stored on this device. Export a copy to '
                     'keep somewhere safe or move to another phone.',
                   ),
@@ -291,6 +302,127 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
+
+class _BackupSection extends StatelessWidget {
+  const _BackupSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Section(
+      title: 'Back up your progress',
+      child: Consumer<AuthService>(
+        builder: (context, auth, _) {
+          if (!auth.available) {
+            return const ListTile(
+              leading: Icon(Icons.cloud_off_outlined),
+              title: Text('Cloud backup is unavailable on this build'),
+              subtitle: Text('Your progress is saved on this device.'),
+            );
+          }
+          if (auth.isAnonymous) {
+            return Column(
+              children: [
+                const ListTile(
+                  leading: Icon(Icons.cloud_upload_outlined),
+                  title: Text('Your progress is on this device only'),
+                  subtitle: Text(
+                      'Sign in to keep it safe and use it on another phone.'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      Insets.md, 0, Insets.md, Insets.md),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => _link(context, auth),
+                      icon: const Icon(Icons.login),
+                      label: const Text('Sign in with Google'),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+          return Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.cloud_done_outlined),
+                title: Text('Backed up as ${auth.accountLabel ?? 'your account'}'),
+                subtitle: const Text('Your progress syncs across your devices.'),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    Insets.md, 0, Insets.md, Insets.md),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: auth.signOut,
+                    child: const Text('Sign out'),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _link(BuildContext context, AuthService auth) async {
+    final result = await auth.linkGoogle();
+    if (!context.mounted) return;
+    switch (result) {
+      case LinkResult.linked:
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Your progress is backed up')));
+      case LinkResult.conflict:
+        await _showConflictDialog(context, auth);
+      case LinkResult.failed:
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not sign in — try again')));
+      case LinkResult.cancelled:
+      case LinkResult.unavailable:
+        break;
+    }
+  }
+}
+
+Future<void> _showConflictDialog(BuildContext context, AuthService auth) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('That account already has progress'),
+      content: const Text(
+        'This Google account was used on another device. You can switch to '
+        "that account's progress now — this device's local progress stays "
+        'on this device.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            auth.cancelConflict();
+            Navigator.pop(context);
+          },
+          child: const Text('Not now'),
+        ),
+        FilledButton(
+          onPressed: () async {
+            await auth.useAccountAfterConflict();
+            if (context.mounted) Navigator.pop(context);
+          },
+          child: const Text("Use my account's data"),
+        ),
+      ],
+    ),
+  );
+}
+
+@visibleForTesting
+class BackupSectionForTest extends StatelessWidget {
+  const BackupSectionForTest({super.key});
+  @override
+  Widget build(BuildContext context) => const _BackupSection();
 }
 
 const _practiceLabels = {
