@@ -50,6 +50,8 @@ dependencies:
   cached_network_image: ^3.3.1
   google_generative_ai: ^0.3.0
   wakelock_plus: ^1.5.2
+  firebase_core: ^4.14.0
+  firebase_auth: ^6.6.1
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +63,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  firebase_auth_mocks: ^0.15.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
