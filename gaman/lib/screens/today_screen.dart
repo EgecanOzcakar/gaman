@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../data/repository.dart';
 import '../providers/activity_log.dart';
 import '../providers/feature_prefs.dart';
@@ -171,11 +172,15 @@ class _QuoteCard extends StatelessWidget {
                 ),
                 const SizedBox(height: Insets.sm),
                 Text(
-                  '— ${quote.author}',
+                  '— ${quote.author}, ${quote.source}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontStyle: FontStyle.italic,
                         color: Theme.of(context).colorScheme.primary,
                       ),
+                ),
+                Text(
+                  AppLocalizations.of(context).translatedBy(quote.translator),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),

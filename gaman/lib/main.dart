@@ -1,32 +1,49 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'theme/app_theme.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:workmanager/workmanager.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'firebase_options.dart';
-import 'screens/splash_screen.dart';
-
-// Import providers
-import 'providers/quote_provider.dart';
-import 'providers/notification_provider.dart';
-import 'providers/theme_provider.dart';
-import 'providers/audio_provider.dart';
-import 'providers/activity_log.dart';
-import 'providers/feature_prefs.dart';
-import 'providers/settings_provider.dart';
-import 'data/local_repository.dart';
-import 'data/repository.dart';
+import 'config.dart';
+import 'data/active_repository.dart';
 import 'data/firestore_repository.dart';
+import 'data/local_repository.dart';
 import 'data/local_to_firestore_migration.dart';
+import 'data/repository.dart';
+import 'firebase_options.dart';
+import 'l10n/app_localizations.dart';
+import 'providers/activity_log.dart';
+import 'providers/audio_provider.dart';
+import 'providers/feature_prefs.dart';
+import 'providers/notification_provider.dart';
+import 'providers/quote_provider.dart';
+import 'providers/settings_provider.dart';
+import 'providers/theme_provider.dart';
+import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
+import 'services/crash_reporting.dart';
+import 'services/entitlement_service.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Fonts ship in assets/google_fonts (OFL); never fetch at runtime.
+  GoogleFonts.config.allowRuntimeFetching = false;
+  LicenseRegistry.addLicense(() async* {
+    for (final f in ['EBGaramond', 'Manrope']) {
+      yield LicenseEntryWithLineBreaks([f],
+          await rootBundle.loadString('assets/google_fonts/OFL-$f.txt'));
+    }
+  });
+
+  // Local only (reads bundled config), no network round-trip.
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -34,62 +51,56 @@ void main() async {
   } catch (e) {
     debugPrint('Firebase init failed; running local-only: $e');
   }
+  if (AppConfig.appCheck && Firebase.apps.isNotEmpty && !kIsWeb) {
+    unawaited(FirebaseAppCheck.instance
+        .activate(
+          providerAndroid: kDebugMode
+              ? const AndroidDebugProvider()
+              : const AndroidPlayIntegrityProvider(),
+          providerApple: kDebugMode
+              ? const AppleDebugProvider()
+              : const AppleAppAttestWithDeviceCheckFallbackProvider(),
+        )
+        .catchError((Object e) => debugPrint('App Check failed: $e')));
+  }
+  // The removed Gemini feature stored a user API key; don't leave it behind.
+  unawaited(SharedPreferences.getInstance().then((p) => p.remove('gemini_api_key')));
 
+  final crash = CrashReporting();
+  unawaited(crash.init());
+
+  // Returning users already have a cached uid; first launch starts local and
+  // switches to Firestore once the background anonymous sign-in lands.
   final auth = AuthService();
-  await auth.ensureSignedIn();
-  final Repository repository = auth.uid != null
-      ? FirestoreRepository(uid: auth.uid!)
-      : LocalRepository();
+  final repository = ActiveRepository.followAuth(
+    auth,
+    build: (uid) =>
+        uid == null ? LocalRepository() : FirestoreRepository(uid: uid),
+    onSignedIn: (repo) => unawaited(
+      LocalToFirestoreMigration(remote: repo as FirestoreRepository)
+          .run()
+          .catchError((Object e) {
+        debugPrint('Local→Firestore migration failed (retries next sign-in): $e');
+        return false;
+      }),
+    ),
+  );
 
-  if (repository is FirestoreRepository) {
-    try {
-      await LocalToFirestoreMigration(remote: repository).run();
-    } catch (e) {
-      debugPrint('Local→Firestore migration failed (will retry next launch): $e');
-    }
-  }
-
-  // Initialize notifications (only on mobile platforms)
-  if (!kIsWeb) {
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    final DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-    // Initialize WorkManager for background tasks (only on mobile platforms)
-    await Workmanager().initialize(callbackDispatcher);
-    
-    // Request necessary permissions (only on mobile platforms)
-    await Permission.notification.request();
-  }
-  
-  runApp(MyApp(repository: repository, auth: auth));
-}
-
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    // Handle background tasks here
-    return Future.value(true);
-  });
+  runApp(MyApp(repository: repository, auth: auth, crash: crash));
+  unawaited(auth.ensureSignedIn());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.repository, required this.auth});
+  const MyApp({
+    super.key,
+    required this.repository,
+    required this.auth,
+    required this.crash,
+  });
 
   final Repository repository;
   final AuthService auth;
+  final CrashReporting crash;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +108,8 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<Repository>.value(value: repository),
         ChangeNotifierProvider<AuthService>.value(value: auth),
+        ChangeNotifierProvider<CrashReporting>.value(value: crash),
+        ChangeNotifierProvider(create: (_) => EntitlementService()),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
         ChangeNotifierProvider(
             create: (ctx) => NotificationProvider(ctx.read<Repository>())),
@@ -113,12 +126,19 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'Gaman',
+            onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
             debugShowCheckedModeBanner: false,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
             themeMode: themeProvider.themeMode,
-            home: const SplashScreen(), // Changed from HomeScreen to SplashScreen
+            home: const SplashScreen(),
           );
         },
       ),

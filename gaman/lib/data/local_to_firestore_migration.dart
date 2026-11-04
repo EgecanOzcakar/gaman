@@ -4,8 +4,15 @@ import 'firestore_repository.dart';
 import 'local_repository.dart';
 import 'models.dart';
 
-/// Copies a device's local data into the signed-in user's Firestore account,
-/// exactly once. Guarded by `users/{uid}/profile/migration`.
+/// Copies a device's local data into the signed-in user's Firestore account.
+///
+/// The first run for a uid copies everything, settings included, and sets
+/// `users/{uid}/profile/migration`. Later runs still pick up journal, task and
+/// activity data that was written locally after that (e.g. a launch where
+/// Firebase was unreachable) — the marker alone would strand it. Settings are
+/// only copied on the first run: after that the cloud copy wins.
+///
+/// Local keys are cleared only after the server has acknowledged the writes.
 class LocalToFirestoreMigration {
   LocalToFirestoreMigration({
     required this.remote,
@@ -31,10 +38,16 @@ class LocalToFirestoreMigration {
     'notification_time',
   ];
 
-  Future<bool> run() async {
-    if (await remote.hasMigrated()) return false;
+  static const _dataKeys = ['journal_entries', 'activity_log'];
 
+  static bool _isDataKey(String k) =>
+      _dataKeys.contains(k) || k.startsWith('todo_tasks_');
+
+  Future<bool> run() async {
     final prefs = _injectedPrefs ?? await SharedPreferences.getInstance();
+    final migrated = await remote.hasMigrated();
+    if (migrated && !prefs.getKeys().any(_isDataKey)) return false;
+
     final local = _injectedLocal ?? (LocalRepository(prefs: prefs));
     await local.ready;
 
@@ -59,12 +72,14 @@ class LocalToFirestoreMigration {
       await remote.putActivityAt(_activityId(ev), ev);
     }
 
-    await remote.saveSettings(settings);
-    await remote.markMigrated();
+    if (!migrated) {
+      await remote.saveSettings(settings);
+      await remote.markMigrated();
+    }
+    await remote.flush();
 
     for (final k in [
-      'journal_entries',
-      'activity_log',
+      ..._dataKeys,
       ..._settingsKeys,
       ...taskKeys,
     ]) {

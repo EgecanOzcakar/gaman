@@ -36,24 +36,26 @@ dependencies:
   cupertino_icons: ^1.0.2
   provider: ^6.1.1
   flutter_local_notifications: ^17.2.4
-  workmanager: ^0.6.0
-  http: ^1.1.0
   just_audio: ^0.9.34
-  flutter_svg: ^2.0.7
   google_fonts: ^6.2.1
-  intl: ^0.18.1
-  path_provider: ^2.1.1
-  permission_handler: ^11.1.0
+  intl: ^0.20.2
   timezone: ^0.9.4
   shared_preferences: ^2.2.2
   share_plus: ^7.2.1
-  cached_network_image: ^3.3.1
-  google_generative_ai: ^0.3.0
   wakelock_plus: ^1.5.2
   firebase_core: ^4.14.0
   firebase_auth: ^6.6.1
   cloud_firestore: ^6.9.0
   google_sign_in: ^6.2.1  # pinned to v6; v7 renames the sign-in API — revisit when wiring a real Firebase project
+  flutter_timezone: ^5.1.1
+  sign_in_with_apple: ^8.2.0
+  firebase_app_check: ^0.4.9
+  firebase_crashlytics: ^5.4.1
+  url_launcher: ^6.3.3
+  flutter_localizations:
+    sdk: flutter
+  crypto: ^3.0.8
+  audio_session: ^0.1.25
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +69,8 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   firebase_auth_mocks: ^0.15.2
   fake_cloud_firestore: ^4.2.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -78,11 +82,14 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  generate: true
 
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
     - assets/audio/
+    - assets/quotes/
+    - assets/google_fonts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -104,3 +111,27 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# App icon + native splash. PLACEHOLDER art in assets/branding/ — replace the
+# PNGs, then run `dart run flutter_launcher_icons` and
+# `dart run flutter_native_splash:create` (see SETUP.md). The platform folders
+# currently hold the generated placeholder icon and splash.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: assets/branding/icon_placeholder.png
+  adaptive_icon_background: "#5F8F8C"
+  adaptive_icon_foreground: assets/branding/icon_foreground_placeholder.png
+  web:
+    generate: true
+    image_path: assets/branding/icon_placeholder.png
+
+flutter_native_splash:
+  color: "#ECEDE8"
+  image: assets/branding/splash_placeholder.png
+  color_dark: "#131C1C"
+  android_12:
+    color: "#ECEDE8"
+    color_dark: "#131C1C"
+    image: assets/branding/splash_placeholder.png

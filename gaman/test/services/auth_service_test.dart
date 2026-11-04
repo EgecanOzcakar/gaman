@@ -30,12 +30,17 @@ void main() {
     expect(svc.uid, uidBefore);
   });
 
-  test('signOut clears the user', () async {
+  test('signOut drops the account and starts a fresh anonymous session',
+      () async {
     final mock = MockFirebaseAuth(signedIn: true);
     final svc = AuthService(auth: mock);
-    expect(svc.isSignedIn, isTrue);
+    final seen = <String?>[];
+    final sub = mock.authStateChanges().listen((u) => seen.add(u?.uid));
     await svc.signOut();
-    expect(svc.isSignedIn, isFalse);
+    await Future<void>.delayed(Duration.zero);
+    expect(seen, contains(null)); // the old session really ended
+    expect(svc.isSignedIn, isTrue); // and a new one started
+    await sub.cancel();
   });
 
   test('signOut and dispose are safe no-ops when unavailable', () async {

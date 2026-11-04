@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/activity_log.dart';
+import '../services/entitlement_service.dart';
+import 'paywall_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 
@@ -62,7 +65,11 @@ class InsightsScreen extends StatelessWidget {
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
           delay: const Duration(milliseconds: 220),
-          child: _WeeklyReviewCard(
+          child: !context
+                  .watch<EntitlementService>()
+                  .has(PremiumFeature.advancedInsights)
+              ? const _LockedReviewCard()
+              : _WeeklyReviewCard(
             summary: _summary(medMin, focusN, journalDays, tasksN),
             trend: _trend(
               context,
@@ -112,6 +119,26 @@ class InsightsScreen extends StatelessWidget {
   }
 }
 
+
+/// Advanced insights (week-over-week review) are a Premium feature.
+class _LockedReviewCard extends StatelessWidget {
+  const _LockedReviewCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Card(
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(Insets.md),
+        leading: const Icon(Icons.lock_outline),
+        title: Text(l10n.weeklyReviewLockedTitle),
+        subtitle: Text(l10n.weeklyReviewLockedBody),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => PaywallScreen.show(context),
+      ),
+    );
+  }
+}
 
 class _StreakCard extends StatelessWidget {
   const _StreakCard({required this.streak});

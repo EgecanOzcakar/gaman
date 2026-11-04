@@ -1,15 +1,23 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config.dart';
+import '../data/firestore_repository.dart';
 import '../data/repository.dart';
 import '../data/sync_status.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/feature_prefs.dart';
 import '../providers/notification_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/auth_service.dart';
+import '../services/crash_reporting.dart';
 import '../services/data_export.dart';
-import '../services/gemini_service.dart';
+import '../services/entitlement_service.dart';
 import '../theme/app_theme.dart';
+import 'paywall_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,56 +27,12 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _apiKeyController = TextEditingController();
-  final _geminiService = GeminiService();
-  bool _isLoading = false;
-  bool _isConfigured = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadApiKey();
-  }
-
-  @override
-  void dispose() {
-    _apiKeyController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadApiKey() async {
-    final apiKey = await _geminiService.getApiKey();
-    final isConfigured = await _geminiService.isConfigured();
-    if (!mounted) return;
-    setState(() {
-      _apiKeyController.text = apiKey ?? '';
-      _isConfigured = isConfigured;
-    });
-  }
-
-  Future<void> _saveApiKey() async {
-    if (_apiKeyController.text.trim().isEmpty) {
-      _showSnackBar('Enter your Gemini API key first');
-      return;
-    }
-    setState(() => _isLoading = true);
-    try {
-      await _geminiService.setApiKey(_apiKeyController.text.trim());
-      if (!mounted) return;
-      setState(() => _isConfigured = true);
-      _showSnackBar('API key saved');
-    } catch (e) {
-      _showSnackBar('Could not save the API key: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   Future<void> _export() async {
     try {
-      await exportAllData();
+      await exportAllData(context.read<Repository>());
     } catch (e) {
-      _showSnackBar('Could not export: $e');
+      if (!mounted) return;
+      _showSnackBar(AppLocalizations.of(context).exportFailed('$e'));
     }
   }
 
@@ -221,54 +185,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: Insets.lg),
           _Section(
-            title: 'AI task generation',
-            child: Padding(
-              padding: const EdgeInsets.all(Insets.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Add a Gemini API key to generate a daily task list from '
-                    'your role and current focus.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: Insets.md),
-                  TextField(
-                    controller: _apiKeyController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Gemini API key',
-                      suffixIcon: _isConfigured
-                          ? const Icon(Icons.check_circle,
-                              color: Color(0xFF5C8A5C))
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: Insets.md),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _isLoading ? null : _saveApiKey,
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Save API key'),
-                    ),
-                  ),
-                  const SizedBox(height: Insets.sm),
-                  Text(
-                    'Create a key at aistudio.google.com/app/apikey',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: Insets.lg),
-          _Section(
             title: 'Your data',
             child: Padding(
               padding: const EdgeInsets.all(Insets.md),
@@ -277,29 +193,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   const Text(
                     "What's stored: your journal, tasks, activity history and "
-                    'app settings. When you sign in, a copy is kept in your '
-                    'Google-linked account so it survives reinstalling the app. '
-                    'It is not shared with anyone.',
+                    'app settings. They are saved on this device and, once '
+                    'the app has connected, in your private cloud account so '
+                    'they survive reinstalling. Sign in to use them on another '
+                    'phone. They are not shared with anyone.',
                     style: TextStyle(height: 1.4),
                   ),
                   const SizedBox(height: Insets.md),
-                  const Text(
-                    'Everything is stored on this device. Export a copy to '
-                    'keep somewhere safe or move to another phone.',
-                  ),
+                  Text(AppLocalizations.of(context).exportExplainer),
                   const SizedBox(height: Insets.md),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: _export,
                       icon: const Icon(Icons.ios_share),
-                      label: const Text('Export all data'),
+                      label: Text(AppLocalizations.of(context).exportAllData),
                     ),
                   ),
                 ],
               ),
             ),
           ),
+          const SizedBox(height: Insets.lg),
+          const _PremiumSection(),
+          const SizedBox(height: Insets.lg),
+          const _PrivacySection(),
+          const SizedBox(height: Insets.lg),
+          const _DeleteAccountSection(),
         ],
       ),
     );
@@ -337,12 +257,27 @@ class _BackupSection extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => _link(context, auth),
+                      onPressed: () =>
+                          _link(context, auth, AuthProviderKind.google),
                       icon: const Icon(Icons.login),
                       label: const Text('Sign in with Google'),
                     ),
                   ),
                 ),
+                if (AuthService.appleSignInEnabled)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        Insets.md, 0, Insets.md, Insets.md),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () =>
+                            _link(context, auth, AuthProviderKind.apple),
+                        icon: const Icon(Icons.apple),
+                        label: Text(AppLocalizations.of(context).signInApple),
+                      ),
+                    ),
+                  ),
               ],
             );
           }
@@ -379,8 +314,9 @@ class _BackupSection extends StatelessWidget {
     );
   }
 
-  Future<void> _link(BuildContext context, AuthService auth) async {
-    final result = await auth.linkGoogle();
+  Future<void> _link(
+      BuildContext context, AuthService auth, AuthProviderKind kind) async {
+    final result = await auth.link(kind);
     if (!context.mounted) return;
     switch (result) {
       case LinkResult.linked:
@@ -435,6 +371,136 @@ class BackupSectionForTest extends StatelessWidget {
   Widget build(BuildContext context) => const _BackupSection();
 }
 
+
+class _PremiumSection extends StatelessWidget {
+  const _PremiumSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final ent = context.watch<EntitlementService>();
+    return _Section(
+      title: l10n.premiumTitle,
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.workspace_premium_outlined),
+            title: Text(ent.isPremium ? l10n.premiumActive : l10n.premiumFree),
+            trailing: ent.isPremium ? null : const Icon(Icons.chevron_right),
+            onTap: ent.isPremium ? null : () => PaywallScreen.show(context),
+          ),
+          if (kDebugMode)
+            SwitchListTile(
+              title: Text(l10n.devPremiumToggle),
+              value: ent.isPremium,
+              onChanged: ent.setDebugPremium,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrivacySection extends StatelessWidget {
+  const _PrivacySection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final crash = context.watch<CrashReporting>();
+    return _Section(
+      title: l10n.privacyTitle,
+      child: Column(
+        children: [
+          SwitchListTile(
+            title: Text(l10n.crashReportsTitle),
+            subtitle: Text(l10n.crashReportsBody),
+            value: crash.enabled,
+            onChanged: crash.available ? crash.setEnabled : null,
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(l10n.privacyPolicy),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrl(Uri.parse(AppConfig.privacyUrl)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(l10n.terms),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrl(Uri.parse(AppConfig.termsUrl)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(l10n.licenses),
+            onTap: () => showLicensePage(context: context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeleteAccountSection extends StatelessWidget {
+  const _DeleteAccountSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthService>();
+    if (!auth.available) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final danger = Theme.of(context).colorScheme.error;
+    return _Section(
+      title: l10n.deleteAccountTitle,
+      child: ListTile(
+        leading: Icon(Icons.delete_forever_outlined, color: danger),
+        title: Text(l10n.deleteAccountButton, style: TextStyle(color: danger)),
+        subtitle: Text(l10n.deleteAccountSubtitle),
+        onTap: () => _confirmAndDelete(context, auth),
+      ),
+    );
+  }
+
+  Future<void> _confirmAndDelete(BuildContext context, AuthService auth) async {
+    final l10n = AppLocalizations.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deleteAccountConfirmTitle),
+        content: Text(l10n.deleteAccountConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(ctx).colorScheme.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.deleteAccountButton),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final result = await auth.deleteAccount(deleteUserData);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(switch (result) {
+        DeleteResult.deleted => l10n.deleteAccountDone,
+        DeleteResult.cancelled => l10n.deleteAccountCancelled,
+        _ => l10n.deleteAccountFailed,
+      }),
+    ));
+  }
+}
+
+/// Removes everything stored for [uid]: the cloud copy and this device's.
+Future<void> deleteUserData(String uid) async {
+  await FirestoreRepository(uid: uid).deleteAllUserData();
+  await (await SharedPreferences.getInstance()).clear();
+}
+
 const _practiceLabels = {
   'meditation': 'Meditation',
   'journal': 'Journal',
@@ -484,6 +550,7 @@ class _StepperTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
+            tooltip: AppLocalizations.of(context).decrease(label),
             onPressed: onMinus,
             icon: const Icon(Icons.remove_circle_outline),
           ),
@@ -496,6 +563,7 @@ class _StepperTile extends StatelessWidget {
             ),
           ),
           IconButton(
+            tooltip: AppLocalizations.of(context).increase(label),
             onPressed: onPlus,
             icon: const Icon(Icons.add_circle_outline),
           ),

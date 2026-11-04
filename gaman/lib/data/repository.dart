@@ -27,5 +27,9 @@ abstract class Repository {
   /// cloud backend.
   Stream<SyncStatus> watchSyncStatus();
 
+  /// Everything this user has stored, as JSON-safe maps, for the export
+  /// feature. Contains user data only — never credentials or keys.
+  Future<Map<String, Object?>> exportData();
+
   Future<void> dispose();
 }
