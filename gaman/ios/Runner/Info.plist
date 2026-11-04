@@ -53,8 +53,9 @@
 	<!-- Crash reports are opt-in (Settings); nothing is sent before consent. -->
 	<key>FirebaseCrashlyticsCollectionEnabled</key>
 	<false/>
-	<!-- Google Sign-In callback. REPLACE_ME: set to REVERSED_CLIENT_ID from
-	     GoogleService-Info.plist (com.googleusercontent.apps.<id>). SETUP.md. -->
+	<!-- Google Sign-In callback: REVERSED_CLIENT_ID, derived from iosClientId
+	     in lib/firebase_options.dart. Verify it against REVERSED_CLIENT_ID in
+	     GoogleService-Info.plist when that file is added (SETUP.md §3). -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -62,7 +63,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.REPLACE_ME</string>
+				<string>com.googleusercontent.apps.215059104741-duv3g0skumq9otjinf78kbcv4r2qv3be</string>
 			</array>
 		</dict>
 	</array>

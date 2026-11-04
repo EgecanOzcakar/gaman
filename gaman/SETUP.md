@@ -57,12 +57,11 @@ upload; if it changes, redo sections 2–4 for the new id.
 **iOS**
 1. Download `GoogleService-Info.plist` for the iOS app and add it to
    `ios/Runner/` in Xcode (Runner target).
-2. In `ios/Runner/Info.plist`, replace
-   `com.googleusercontent.apps.REPLACE_ME` with the plist's
-   `REVERSED_CLIENT_ID`. With the current config that is
-   `com.googleusercontent.apps.215059104741-duv3g0skumq9otjinf78kbcv4r2qv3be`
-   (the `iosClientId` in `lib/firebase_options.dart`, reversed). Verify
-   against the downloaded plist.
+2. `ios/Runner/Info.plist` already has the Google URL scheme
+   `com.googleusercontent.apps.215059104741-duv3g0skumq9otjinf78kbcv4r2qv3be`,
+   which is the `iosClientId` in `lib/firebase_options.dart`, reversed.
+   **Verify** it matches `REVERSED_CLIENT_ID` in the downloaded plist and
+   update it if the iOS OAuth client ever changes (e.g. a new bundle id).
 
 ## 4. Sign in with Apple (`APPLE_SIGN_IN`)
 
