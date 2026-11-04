@@ -1,16 +1,37 @@
-# gaman
+# Gaman
 
-A new Flutter project.
+A Stoic practice app: a daily quote from Marcus Aurelius, Epictetus or
+Seneca, guided journalling, an "eat the frog" daily task list, meditation and
+focus timers, and ambient binaural tracks. Free core, with an optional Premium
+tier (currently mocked).
 
-## Getting Started
+Flutter app for Android, iOS and web (web deploys to GitHub Pages from `main`).
 
-This project is a starting point for a Flutter application.
+## Run
 
-A few resources to get you started if this is your first Flutter project:
+```
+flutter pub get
+flutter run
+flutter analyze && flutter test
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## How it fits together
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **Data**: one `Repository` interface (`lib/data/`). `ActiveRepository`
+  follows the signed-in user. It starts on `LocalRepository`
+  (SharedPreferences) and switches to `FirestoreRepository`
+  (`users/{uid}/…`) once Firebase sign-in lands. `LocalToFirestoreMigration`
+  moves any device-only data up.
+- **Auth**: anonymous-first Firebase Auth. Users can link Google (and Apple,
+  behind a flag). Settings has export and account deletion.
+- **Content**: quotes are bundled offline (`assets/quotes/`, public-domain
+  translations only). Fonts are bundled (`assets/google_fonts/`, OFL).
+- **Strings**: `lib/l10n/app_en.arb` (`flutter gen-l10n`). Older screens
+  still have inline strings to move over.
+
+## Before a store release
+
+Placeholders and console steps are listed in **[SETUP.md](SETUP.md)**.
+Firebase project bootstrap is in `docs/cloud-sync-firebase-setup.md`, the
+privacy policy draft in `docs/privacy-policy-draft.md`, and the web deploy in
+`DEPLOYMENT.md`.
