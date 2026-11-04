@@ -211,10 +211,27 @@ class LocalRepository implements Repository {
   Stream<SyncStatus> watchSyncStatus() =>
       Stream<SyncStatus>.value(SyncStatus.localOnly);
 
+  @override
+  Future<Map<String, Object?>> exportData() async {
+    await ready;
+    final tasks = <String, Object?>{
+      for (final k in _prefs.getKeys().where((k) => k.startsWith('todo_tasks_')))
+        k.substring('todo_tasks_'.length):
+            _decodeList(k, (m) => TodoTask.fromJson(m)).map((t) => t.toJson()).toList(),
+    };
+    return {
+      'journal': _journalCache.map((e) => e.toJson()).toList(),
+      'tasks': tasks,
+      'activity': _activityCache.map((e) => e.toJson()).toList(),
+      'settings': _settingsCache.toJson(),
+    };
+  }
+
   // --- teardown -----------------------------------------------------
 
   @override
   Future<void> dispose() async {
+    await ready; // _init still adds to the controllers below
     await _journal.close();
     await _activity.close();
     await _settings.close();

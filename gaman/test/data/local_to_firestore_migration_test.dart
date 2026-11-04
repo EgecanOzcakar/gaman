@@ -6,6 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gaman/data/firestore_repository.dart';
 import 'package:gaman/data/local_repository.dart';
 import 'package:gaman/data/local_to_firestore_migration.dart';
+import 'package:gaman/data/models.dart';
+
+/// The fake has no pending-writes queue; every write is already "acked".
+class _Db extends FakeFirebaseFirestore {
+  @override
+  Future<void> waitForPendingWrites() async {}
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +21,7 @@ void main() {
   late FirestoreRepository remote;
 
   setUp(() {
-    db = FakeFirebaseFirestore();
+    db = _Db();
     remote = FirestoreRepository(uid: 'u1', firestore: db);
   });
 
@@ -69,19 +76,37 @@ void main() {
     expect(prefs.getDouble('binaural_volume'), 0.7); // untouched
   });
 
-  test('does nothing when already migrated', () async {
-    SharedPreferences.setMockInitialValues({
-      'journal_entries': [
-        jsonEncode({
-          'id': 'j1', 'content': 'x', 'mood': '😊', 'type': 'free',
-          'date': DateTime(2026).toIso8601String(),
-        }),
-      ],
-    });
+  test('does nothing when already migrated and no local data is left',
+      () async {
+    SharedPreferences.setMockInitialValues({'theme_mode': 'ThemeMode.dark'});
     await remote.markMigrated();
     final did = await (await build()).run();
     expect(did, isFalse);
-    expect(await remote.watchJournal().first, isEmpty);
+    expect((await remote.watchSettings().first).themeMode, ThemeMode.system);
+  });
+
+  test('already migrated: stranded local data is still copied, cloud settings win',
+      () async {
+    await remote.saveSettings(const AppSettings().copyWith(focusMinutes: 50));
+    await remote.markMigrated();
+    // Written to LocalRepository on a launch where Firebase was unreachable.
+    SharedPreferences.setMockInitialValues({
+      'journal_entries': [
+        jsonEncode({
+          'id': 'late', 'content': 'offline entry', 'mood': '😊',
+          'type': 'free', 'date': DateTime(2026, 6, 1).toIso8601String(),
+        }),
+      ],
+      'settings_focus_minutes': 15,
+    });
+
+    final did = await (await build()).run();
+
+    expect(did, isTrue);
+    expect((await remote.watchJournal().first).single.content, 'offline entry');
+    expect((await remote.watchSettings().first).focusMinutes, 50);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getKeys(), isNot(contains('journal_entries')));
   });
 
   test('re-run after a lost marker does not duplicate activity', () async {
