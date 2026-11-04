@@ -45,5 +45,26 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Binaural beats keep playing with the screen locked. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+	<!-- Crash reports are opt-in (Settings); nothing is sent before consent. -->
+	<key>FirebaseCrashlyticsCollectionEnabled</key>
+	<false/>
+	<!-- Google Sign-In callback. REPLACE_ME: set to REVERSED_CLIENT_ID from
+	     GoogleService-Info.plist (com.googleusercontent.apps.<id>). SETUP.md. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.REPLACE_ME</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
