@@ -114,8 +114,8 @@ flutter:
 
 # App icon + native splash. PLACEHOLDER art in assets/branding/ — replace the
 # PNGs, then run `dart run flutter_launcher_icons` and
-# `dart run flutter_native_splash:create` (see SETUP.md). Not yet generated,
-# so the platform folders still have the Flutter defaults.
+# `dart run flutter_native_splash:create` (see SETUP.md). The platform folders
+# currently hold the generated placeholder icon and splash.
 flutter_launcher_icons:
   android: true
   ios: true

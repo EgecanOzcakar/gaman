@@ -117,7 +117,8 @@ builds have a "pretend Premium" switch in Settings.
 ## 8. Icon and splash
 
 Placeholders in `assets/branding/` (they literally say "PLACEHOLDER").
-Replace the three PNGs, then:
+The generators have already been run once, so `android/`, `ios/` and `web/`
+ship the placeholder art. Replace the three PNGs, then re-run:
 
 ```
 dart run flutter_launcher_icons
