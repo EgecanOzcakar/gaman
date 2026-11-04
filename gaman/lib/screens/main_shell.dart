@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../widgets/persistent_audio_control.dart';
 import 'focus_screen.dart';
 import 'insights_screen.dart';
@@ -30,6 +31,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -42,27 +44,27 @@ class _MainShellState extends State<MainShell> {
           NavigationBar(
             selectedIndex: _index,
             onDestinationSelected: (i) => setState(() => _index = i),
-            destinations: const [
+            destinations: [
               NavigationDestination(
-                  icon: Icon(Icons.wb_sunny_outlined),
-                  selectedIcon: Icon(Icons.wb_sunny),
-                  label: 'Today'),
+                  icon: const Icon(Icons.wb_sunny_outlined),
+                  selectedIcon: const Icon(Icons.wb_sunny),
+                  label: l10n.navToday),
               NavigationDestination(
-                  icon: Icon(Icons.edit_note_outlined),
-                  selectedIcon: Icon(Icons.edit_note),
-                  label: 'Journal'),
+                  icon: const Icon(Icons.edit_note_outlined),
+                  selectedIcon: const Icon(Icons.edit_note),
+                  label: l10n.navJournal),
               NavigationDestination(
-                  icon: Icon(Icons.timelapse_outlined),
-                  selectedIcon: Icon(Icons.timelapse),
-                  label: 'Focus'),
+                  icon: const Icon(Icons.timelapse_outlined),
+                  selectedIcon: const Icon(Icons.timelapse),
+                  label: l10n.navFocus),
               NavigationDestination(
-                  icon: Icon(Icons.insights_outlined),
-                  selectedIcon: Icon(Icons.insights),
-                  label: 'Insights'),
+                  icon: const Icon(Icons.insights_outlined),
+                  selectedIcon: const Icon(Icons.insights),
+                  label: l10n.navInsights),
               NavigationDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings),
-                  label: 'Settings'),
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings),
+                  label: l10n.navSettings),
             ],
           ),
         ],

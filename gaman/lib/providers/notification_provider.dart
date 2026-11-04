@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -24,14 +26,27 @@ class NotificationProvider with ChangeNotifier {
   bool get isEnabled => _isEnabled;
   TimeOfDay? get scheduledTime => _scheduledTime;
 
-  Future<void> _initializeNotifications() async {
+  /// Plugin + timezone setup runs once per process, however many times the
+  /// provider is created.
+  static Future<void>? _pluginReady;
+
+  static Future<void> _setUpPlugin(FlutterLocalNotificationsPlugin plugin) async {
     tz.initializeTimeZones();
+    try {
+      final zone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(zone.identifier));
+    } catch (e) {
+      // Unknown zone id: tz.local stays UTC, so reminders may be off by the
+      // UTC offset — better than not scheduling at all.
+      debugPrint('Could not resolve local timezone: $e');
+    }
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    // Permission is asked for at the end of onboarding, not on launch.
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     const initSettings = InitializationSettings(
@@ -39,7 +54,29 @@ class NotificationProvider with ChangeNotifier {
       iOS: iosSettings,
     );
 
-    await _notifications.initialize(initSettings);
+    await plugin.initialize(initSettings);
+  }
+
+  /// Asks the OS for notification permission (Android 13+, iOS). Called once,
+  /// from the end of onboarding.
+  static Future<void> requestPermission() async {
+    if (kIsWeb) return;
+    final plugin = FlutterLocalNotificationsPlugin();
+    await (_pluginReady ??= _setUpPlugin(plugin));
+    await plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    await plugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  Future<void> _initializeNotifications() async {
+    if (!kIsWeb) {
+      await (_pluginReady ??= _setUpPlugin(_notifications));
+    }
     await _loadNotificationSettings();
   }
 
@@ -94,7 +131,8 @@ class NotificationProvider with ChangeNotifier {
   }
 
   Future<void> _scheduleNotification() async {
-    if (!_isEnabled || _scheduledTime == null) return;
+    if (kIsWeb || !_isEnabled || _scheduledTime == null) return;
+    await _pluginReady;
 
     final now = DateTime.now();
     var scheduledDate = DateTime(
@@ -114,7 +152,8 @@ class NotificationProvider with ChangeNotifier {
       0,
       'Time for Reflection',
       'Take 10 minutes to reflect on your day and practice mindfulness.',
-      tz.TZDateTime.from(scheduledDate, tz.local),
+      tz.TZDateTime(tz.local, scheduledDate.year, scheduledDate.month,
+          scheduledDate.day, scheduledDate.hour, scheduledDate.minute),
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'reflection_channel',
@@ -129,7 +168,9 @@ class NotificationProvider with ChangeNotifier {
           presentSound: true,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      // A reflection nudge doesn't need to-the-minute precision, and inexact
+      // avoids the SCHEDULE_EXACT_ALARM permission.
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,

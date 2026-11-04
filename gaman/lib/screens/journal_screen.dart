@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../data/models.dart';
@@ -209,6 +210,7 @@ class _JournalScreenState extends State<JournalScreen> {
                                     ],
                                   ),
                                   trailing: IconButton(
+                                    tooltip: AppLocalizations.of(context).deleteEntry,
                                     icon: const Icon(Icons.delete_outline),
                                     onPressed: () => _deleteEntry(entry),
                                   ),

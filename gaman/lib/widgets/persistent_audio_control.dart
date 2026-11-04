@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/audio_provider.dart';
@@ -102,7 +103,9 @@ class PersistentAudioControl extends StatelessWidget {
                         thumbColor: Theme.of(context).colorScheme.primary,
                         overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                       ),
-                      child: Slider(
+                      child: Semantics(
+                        label: AppLocalizations.of(context).volume,
+                        child: Slider(
                         value: audioProvider.volume,
                         onChanged: (value) {
                           // Immediate feedback - no debouncing for UI
@@ -117,11 +120,14 @@ class PersistentAudioControl extends StatelessWidget {
                         min: 0.0,
                         max: 1.0,
                         divisions: 20, // More granular control
-                      ),
+                      )),
                     ),
                   ),
                   
                   IconButton(
+                    tooltip: audioProvider.isPlaying
+                        ? AppLocalizations.of(context).pause
+                        : AppLocalizations.of(context).play,
                     onPressed: () {
                       HapticFeedback.selectionClick();
                       if (audioProvider.isPlaying) {
@@ -144,11 +150,13 @@ class PersistentAudioControl extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    tooltip: AppLocalizations.of(context).stop,
                     onPressed: audioProvider.stop,
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     icon: const Icon(Icons.stop_rounded),
                   ),
                   IconButton(
+                    tooltip: AppLocalizations.of(context).openBeats,
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(

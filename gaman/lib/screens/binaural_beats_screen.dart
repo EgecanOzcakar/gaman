@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/audio_provider.dart';
+import '../services/entitlement_service.dart';
+import 'paywall_screen.dart';
 import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
 
@@ -34,6 +37,10 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                           'Volume',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
+                        Text(
+                          AppLocalizations.of(context).beatsDisclaimer,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                         Row(
                           children: [
                             const Icon(Icons.volume_down),
@@ -48,7 +55,11 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                                   thumbColor: Theme.of(context).colorScheme.primary,
                                   overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                                 ),
-                                child: Slider(
+                                child: Semantics(
+  label: AppLocalizations.of(context).volume,
+  child: Slider(
+                                  semanticFormatterCallback: (v) =>
+                                      '${(v * 100).round()}%',
                                   value: audioProvider.volume,
                                   onChanged: (value) {
                                     // Immediate feedback - no debouncing for UI
@@ -63,7 +74,7 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                                   min: 0.0,
                                   max: 1.0,
                                   divisions: 20, // More granular control
-                                ),
+                                )),
                               ),
                             ),
                             const Icon(Icons.volume_up),
@@ -80,6 +91,11 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                         final beat = audioProvider.beats[index];
                         final isSelected = audioProvider.currentBeat == beat;
                         final isPlaying = isSelected && audioProvider.isPlaying;
+                        final locked = beat.premium &&
+                            !context
+                                .watch<EntitlementService>()
+                                .has(PremiumFeature.extraBeats);
+                        final l10n = AppLocalizations.of(context);
 
                         return FadeSlideIn(
                           delay: Duration(milliseconds: (index * 60).clamp(0, 360)),
@@ -106,8 +122,17 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                                   ),
                                 ),
                                 IconButton(
+                                  tooltip: locked
+                                      ? l10n.premiumLockedTooltip(beat.name)
+                                      : isPlaying
+                                          ? l10n.pauseBeat(beat.name)
+                                          : l10n.playBeat(beat.name),
                                   onPressed: () {
                                     HapticFeedback.selectionClick();
+                                    if (locked) {
+                                      PaywallScreen.show(context);
+                                      return;
+                                    }
                                     audioProvider.playBeat(beat);
                                   },
                                   iconSize: 30,
@@ -119,10 +144,12 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                                     transitionBuilder: (c, a) =>
                                         ScaleTransition(scale: a, child: c),
                                     child: Icon(
-                                      isPlaying && isSelected
-                                          ? Icons.pause_rounded
-                                          : Icons.play_arrow_rounded,
-                                      key: ValueKey(isPlaying && isSelected),
+                                      locked
+                                          ? Icons.lock_outline
+                                          : isPlaying && isSelected
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
+                                      key: ValueKey((locked, isPlaying)),
                                     ),
                                   ),
                                 ),

@@ -1,3 +1,4 @@
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,11 +11,15 @@ class BinauralBeat {
   final int frequency;
   final String audioAsset;
 
+  /// Needs [PremiumFeature.extraBeats].
+  final bool premium;
+
   const BinauralBeat({
     required this.name,
     required this.description,
     required this.frequency,
     required this.audioAsset,
+    this.premium = false,
   });
 }
 
@@ -32,37 +37,41 @@ class AudioProvider with ChangeNotifier {
   double get volume => _volume;
   bool get hasActiveAudio => _currentBeat != null;
 
-  // Available beats
+  // Available beats. Copy is deliberately non-medical: these are ambient
+  // tones that some people find calming, not a treatment for anything.
   final List<BinauralBeat> beats = [
     const BinauralBeat(
-      name: 'Deep Sleep',
-      description: 'Delta waves (0.5-4 Hz) for deep sleep and healing',
+      name: 'Rest',
+      description: 'Slow delta-range tone (2 Hz) that may help you unwind',
       frequency: 2,
       audioAsset: 'assets/audio/delta.mp3',
+      premium: true,
     ),
     const BinauralBeat(
       name: 'Meditation',
-      description: 'Theta waves (4-8 Hz) for deep meditation and creativity',
+      description: 'Theta-range tone (6 Hz) that may help you settle into practice',
       frequency: 6,
       audioAsset: 'assets/audio/theta.mp3',
     ),
     const BinauralBeat(
       name: 'Focus',
-      description: 'Alpha waves (8-13 Hz) for focus and relaxation',
+      description: 'Alpha-range tone (10 Hz) that may help you relax and focus',
       frequency: 10,
       audioAsset: 'assets/audio/alpha.mp3',
     ),
     const BinauralBeat(
       name: 'Energy',
-      description: 'Beta waves (13-30 Hz) for energy and concentration',
+      description: 'Beta-range tone (20 Hz) some people find energising',
       frequency: 20,
       audioAsset: 'assets/audio/beta.mp3',
+      premium: true,
     ),
     const BinauralBeat(
-      name: 'Insight',
-      description: 'Gamma waves (30-100 Hz) for insight and high-level processing',
+      name: 'Clarity',
+      description: 'Gamma-range tone (40 Hz) for a bright, alert backdrop',
       frequency: 40,
       audioAsset: 'assets/audio/gamma.mp3',
+      premium: true,
     ),
   ];
 
@@ -71,6 +80,14 @@ class AudioProvider with ChangeNotifier {
   }
 
   Future<void> _initialize() async {
+    // Playback category so beats keep going in the background / on silent
+    // (iOS also needs UIBackgroundModes=audio, set in Info.plist).
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(const AudioSessionConfiguration.music());
+    } catch (e) {
+      debugPrint('Audio session setup failed: $e');
+    }
     await _loadVolume();
     // Beats are short seamless loops; repeat until the user stops.
     await _audioPlayer.setLoopMode(LoopMode.one);

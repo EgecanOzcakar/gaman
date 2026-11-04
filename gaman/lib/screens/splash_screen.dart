@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import 'main_shell.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -44,12 +45,15 @@ class _SplashScreenState extends State<SplashScreen>
       ..forward();
   }
 
-  void _goHome() {
+  Future<void> _goHome() async {
     if (_navigated) return;
     _navigated = true;
+    final onboarded = await Onboarding.isDone();
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const MainShell(),
+        pageBuilder: (_, __, ___) =>
+            onboarded ? const MainShell() : const OnboardingScreen(),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 700),
