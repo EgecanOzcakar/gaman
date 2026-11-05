@@ -34,4 +34,4 @@ flutter analyze && flutter test
 Placeholders and console steps are listed in **[SETUP.md](SETUP.md)**.
 Firebase project bootstrap is in `docs/cloud-sync-firebase-setup.md`, the
 privacy policy draft in `docs/privacy-policy-draft.md`, and the web deploy in
-`DEPLOYMENT.md`.
+`DEPLOYMENT.md`. Gaps between this and a sellable product: `docs/market-readiness-audit.md`.
