@@ -22,6 +22,10 @@ class SettingsProvider with ChangeNotifier {
   int get longBreakEvery => _s.longBreakEvery;
   int get completedPomodoros => _s.completedPomodoros;
 
+  /// Active program id ('' = none) and its start date.
+  String get programId => _s.programId;
+  DateTime? get programStartedOn => DateTime.tryParse(_s.programStartedOn);
+
   Future<void> _subscribe() async {
     final c = Completer<void>();
     _sub = _repo.watchSettings().listen((s) {
@@ -42,6 +46,16 @@ class SettingsProvider with ChangeNotifier {
       _repo.saveSettings(_s.copyWith(longBreakEvery: v));
   Future<void> setCompletedPomodoros(int v) =>
       _repo.saveSettings(_s.copyWith(completedPomodoros: v));
+
+  Future<void> startProgram(String id) {
+    final now = DateTime.now();
+    final day = '${now.year.toString().padLeft(4, '0')}-'
+        '${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    return _repo.saveSettings(_s.copyWith(programId: id, programStartedOn: day));
+  }
+
+  Future<void> stopProgram() =>
+      _repo.saveSettings(_s.copyWith(programId: '', programStartedOn: ''));
 
   @override
   void dispose() {

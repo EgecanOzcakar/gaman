@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../endurance.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/activity_log.dart';
 import '../services/entitlement_service.dart';
+import '../widgets/kintsugi_chain.dart';
 import 'paywall_screen.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 
+/// Endurance, not activity: urges held, trials done, the chain. Premium adds
+/// patterns (triggers, hardest time, trials by level, week-over-week).
 class InsightsScreen extends StatelessWidget {
   const InsightsScreen({super.key});
 
@@ -17,16 +21,20 @@ class InsightsScreen extends StatelessWidget {
     final tomorrow = DateUtils.dateOnly(now).add(const Duration(days: 1));
     final thisWeek = ActivityLog.weekStart();
     final lastWeek = thisWeek.subtract(const Duration(days: 7));
+    final week = log.inRange(thisWeek, tomorrow).toList();
 
-    final medMin = log.minutes(ActivityType.meditation, thisWeek, tomorrow);
-    final focusN = log.count(ActivityType.focus, thisWeek, tomorrow);
-    final journalDays = log
-        .inRange(thisWeek, tomorrow)
+    final urges = urgeStats(week);
+    final trialsDone = trialsByLevel(week).values.fold(0, (a, b) => a + b);
+    final journalDays = week
         .where((e) => e.type == ActivityType.journal)
         .map((e) => DateUtils.dateOnly(e.at))
         .toSet()
         .length;
+    final focusN = log.count(ActivityType.focus, thisWeek, tomorrow);
+    final medMin = log.minutes(ActivityType.meditation, thisWeek, tomorrow);
     final tasksN = log.count(ActivityType.taskDone, thisWeek, tomorrow);
+    final premium =
+        context.watch<EntitlementService>().has(PremiumFeature.advancedInsights);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(Insets.lg, Insets.lg, Insets.lg, Insets.xxl),
@@ -37,7 +45,7 @@ class InsightsScreen extends StatelessWidget {
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
           delay: const Duration(milliseconds: 60),
-          child: _StreakCard(streak: log.currentStreak),
+          child: _ChainCard(log: log),
         ),
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
@@ -55,43 +63,46 @@ class InsightsScreen extends StatelessWidget {
             crossAxisSpacing: Insets.md,
             childAspectRatio: 1.7,
             children: [
-              _Stat(label: 'Meditation', value: '$medMin', unit: 'min'),
-              _Stat(label: 'Focus sessions', value: '$focusN', unit: ''),
+              _Stat(label: 'Urges held', value: '${urges.held}', unit: 'of ${urges.total}'),
+              _Stat(label: 'Trials done', value: '$trialsDone', unit: ''),
               _Stat(label: 'Journal days', value: '$journalDays', unit: 'of 7'),
-              _Stat(label: 'Tasks done', value: '$tasksN', unit: ''),
+              _Stat(label: 'Focus sessions', value: '$focusN', unit: ''),
             ],
           ),
         ),
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
           delay: const Duration(milliseconds: 220),
-          child: !context
-                  .watch<EntitlementService>()
-                  .has(PremiumFeature.advancedInsights)
-              ? const _LockedReviewCard()
-              : _WeeklyReviewCard(
-            summary: _summary(medMin, focusN, journalDays, tasksN),
-            trend: _trend(
-              context,
-              thisWeekActive: log.activeDays(thisWeek, tomorrow),
-              lastWeekActive: log.activeDays(lastWeek, thisWeek),
-            ),
-          ),
+          child: !premium
+              ? const _LockedPatternsCard()
+              : _PatternsCard(
+                  urges: urges,
+                  byLevel: trialsByLevel(week),
+                  summary: _summary(urges, trialsDone, focusN, medMin, journalDays, tasksN),
+                  trend: _trend(
+                    context,
+                    thisWeekActive: log.activeDays(thisWeek, tomorrow),
+                    lastWeekActive: log.activeDays(lastWeek, thisWeek),
+                  ),
+                ),
         ),
       ],
     );
   }
 
-  String _summary(int medMin, int focusN, int journalDays, int tasksN) {
-    if (medMin == 0 && focusN == 0 && journalDays == 0 && tasksN == 0) {
-      return 'Nothing logged yet this week. Start with one small thing today.';
-    }
+  String _summary(UrgeStats urges, int trials, int focusN, int medMin,
+      int journalDays, int tasksN) {
     final parts = <String>[
-      if (focusN > 0) '$focusN focus session${focusN == 1 ? '' : 's'}',
-      if (medMin > 0) '$medMin minutes of meditation',
+      if (urges.total > 0) 'held ${urges.held} of ${urges.total} urges',
+      if (trials > 0) 'completed $trials trial${trials == 1 ? '' : 's'}',
+      if (focusN > 0) 'did $focusN focus session${focusN == 1 ? '' : 's'}',
+      if (medMin > 0) 'sat for $medMin minutes',
       if (journalDays > 0) 'journalled $journalDays day${journalDays == 1 ? '' : 's'}',
       if (tasksN > 0) 'finished $tasksN task${tasksN == 1 ? '' : 's'}',
     ];
+    if (parts.isEmpty) {
+      return 'Nothing logged yet this week. Start with one small hard thing today.';
+    }
     return 'So far this week you\'ve ${_join(parts)}.';
   }
 
@@ -104,25 +115,72 @@ class InsightsScreen extends StatelessWidget {
       {required int thisWeekActive, required int lastWeekActive}) {
     final delta = thisWeekActive - lastWeekActive;
     final (icon, text, color) = switch (delta) {
-      > 0 => (Icons.trending_up, 'more active than last week', Colors.green),
-      < 0 => (Icons.trending_down, 'less active than last week', Theme.of(context).colorScheme.error),
-      _ => (Icons.trending_flat, 'about the same as last week', Theme.of(context).colorScheme.onSurface),
+      > 0 => (Icons.trending_up, 'more than last week', Colors.green),
+      < 0 => (Icons.trending_down, 'fewer than last week', Theme.of(context).colorScheme.error),
+      _ => (Icons.trending_flat, 'the same as last week', Theme.of(context).colorScheme.onSurface),
     };
     return Row(
       children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: Insets.sm),
-        Text('$thisWeekActive active day${thisWeekActive == 1 ? '' : 's'} — $text',
-            style: Theme.of(context).textTheme.bodyMedium),
+        Expanded(
+          child: Text('$thisWeekActive practised day${thisWeekActive == 1 ? '' : 's'}, $text',
+              style: Theme.of(context).textTheme.bodyMedium),
+        ),
       ],
     );
   }
 }
 
+class _ChainCard extends StatelessWidget {
+  const _ChainCard({required this.log});
+  final ActivityLog log;
 
-/// Advanced insights (week-over-week review) are a Premium feature.
-class _LockedReviewCard extends StatelessWidget {
-  const _LockedReviewCard();
+  @override
+  Widget build(BuildContext context) {
+    final chain = log.chain;
+    final text = Theme.of(context).textTheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(Insets.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text('${chain.days}', style: text.displaySmall),
+                const SizedBox(width: Insets.sm),
+                Expanded(
+                  child: Text(
+                    chain.days == 0
+                        ? 'No chain yet. Practise once today.'
+                        : 'day chain${chain.mended > 0 ? ', ${chain.mended} mended' : ''}',
+                    style: text.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Insets.md),
+            KintsugiChain(marks: log.recentMarks(28)),
+            const SizedBox(height: Insets.sm),
+            Text(
+              chain.atRisk
+                  ? 'You missed yesterday. Practise today and it\'s mended in gold.'
+                  : 'Never miss twice: a single missed day is mended in gold, not lost.',
+              style: text.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Endurance patterns are a Premium feature.
+class _LockedPatternsCard extends StatelessWidget {
+  const _LockedPatternsCard();
 
   @override
   Widget build(BuildContext context) {
@@ -135,39 +193,6 @@ class _LockedReviewCard extends StatelessWidget {
         subtitle: Text(l10n.weeklyReviewLockedBody),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => PaywallScreen.show(context),
-      ),
-    );
-  }
-}
-
-class _StreakCard extends StatelessWidget {
-  const _StreakCard({required this.streak});
-  final int streak;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Insets.lg),
-        child: Row(
-          children: [
-            const Text('🔥', style: TextStyle(fontSize: 32)),
-            const SizedBox(width: Insets.md),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('$streak',
-                    style: Theme.of(context).textTheme.displaySmall),
-                Text(
-                  streak == 0
-                      ? 'No streak yet — do one thing today'
-                      : 'day streak',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -208,26 +233,65 @@ class _Stat extends StatelessWidget {
   }
 }
 
-class _WeeklyReviewCard extends StatelessWidget {
-  const _WeeklyReviewCard({required this.summary, required this.trend});
+class _PatternsCard extends StatelessWidget {
+  const _PatternsCard({
+    required this.urges,
+    required this.byLevel,
+    required this.summary,
+    required this.trend,
+  });
+
+  final UrgeStats urges;
+  final Map<int, int> byLevel;
   final String summary;
   final Widget trend;
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final tags = urges.byTag.entries.toList()
+      ..sort((a, b) => b.value.total.compareTo(a.value.total));
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(Insets.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Weekly review',
-                style: Theme.of(context).textTheme.titleMedium),
+            Text('Endurance patterns', style: text.titleMedium),
             const SizedBox(height: Insets.sm),
-            Text(summary,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5)),
+            Text(summary, style: text.bodyLarge?.copyWith(height: 1.5)),
             const SizedBox(height: Insets.md),
             trend,
+            if (tags.isNotEmpty) ...[
+              const SizedBox(height: Insets.lg),
+              Text('Triggers', style: text.titleSmall),
+              const SizedBox(height: Insets.xs),
+              for (final t in tags.take(4))
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Insets.xs),
+                  child: Row(children: [
+                    Expanded(child: Text(t.key)),
+                    Text('${t.value.held} of ${t.value.total} held'),
+                  ]),
+                ),
+            ],
+            if (urges.hardestTime != null) ...[
+              const SizedBox(height: Insets.md),
+              Text('Hardest time: the ${urges.hardestTime}. Plan for it in your premeditatio.',
+                  style: text.bodyMedium),
+            ],
+            const SizedBox(height: Insets.lg),
+            Text('Trials by level', style: text.titleSmall),
+            const SizedBox(height: Insets.xs),
+            Row(children: [
+              for (final l in [1, 2, 3])
+                Expanded(
+                  child: Column(children: [
+                    Text('${byLevel[l] ?? 0}', style: text.headlineSmall),
+                    Text(levelNames[l]!, style: text.bodySmall),
+                  ]),
+                ),
+            ]),
           ],
         ),
       ),

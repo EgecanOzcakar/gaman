@@ -1,13 +1,14 @@
 import 'package:flutter/foundation.dart';
 
 /// Features that need Gaman Premium.
-enum PremiumFeature { advancedInsights, extraBeats }
+enum PremiumFeature { advancedInsights, programs }
 
 /// Placeholder plans for the paywall. REPLACE_ME: real product ids and
 /// store-localised prices come from the billing provider.
 const premiumPlans = [
   (id: 'gaman_premium_yearly', price: r'$24.99 / year', note: 'Best value'),
   (id: 'gaman_premium_monthly', price: r'$3.99 / month', note: ''),
+  (id: 'gaman_premium_lifetime', price: r'$49.99 once', note: 'Lifetime'),
 ];
 
 /// Free vs premium — the only place the app asks. Mock for now: everyone is

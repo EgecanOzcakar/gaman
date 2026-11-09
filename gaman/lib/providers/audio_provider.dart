@@ -11,15 +11,12 @@ class BinauralBeat {
   final int frequency;
   final String audioAsset;
 
-  /// Needs [PremiumFeature.extraBeats].
-  final bool premium;
 
   const BinauralBeat({
     required this.name,
     required this.description,
     required this.frequency,
     required this.audioAsset,
-    this.premium = false,
   });
 }
 
@@ -45,7 +42,6 @@ class AudioProvider with ChangeNotifier {
       description: 'Slow delta-range tone (2 Hz) that may help you unwind',
       frequency: 2,
       audioAsset: 'assets/audio/delta.mp3',
-      premium: true,
     ),
     const BinauralBeat(
       name: 'Meditation',
@@ -64,14 +60,12 @@ class AudioProvider with ChangeNotifier {
       description: 'Beta-range tone (20 Hz) some people find energising',
       frequency: 20,
       audioAsset: 'assets/audio/beta.mp3',
-      premium: true,
     ),
     const BinauralBeat(
       name: 'Clarity',
       description: 'Gamma-range tone (40 Hz) for a bright, alert backdrop',
       frequency: 40,
       audioAsset: 'assets/audio/gamma.mp3',
-      premium: true,
     ),
   ];
 

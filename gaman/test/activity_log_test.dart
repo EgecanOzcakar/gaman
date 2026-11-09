@@ -23,16 +23,52 @@ void main() {
   /// provider before assertions read [ActivityLog] queries.
   Future<void> settle() => Future<void>.delayed(Duration.zero);
 
-  test('streak counts consecutive days and stops at the first gap', () async {
+  test('never miss twice: a single gap is mended, two in a row end it',
+      () async {
     final log = await makeLog();
     await log.log(ActivityType.journal, at: DateTime.now());
     await log.log(ActivityType.focus, at: daysAgo(1));
     await log.log(ActivityType.meditation, at: daysAgo(2));
-    // gap on day 3
+    // single gap on day 3: mended
     await log.log(ActivityType.journal, at: daysAgo(4));
+    // two-day gap on days 5-6: chain ends
+    await log.log(ActivityType.journal, at: daysAgo(7));
     await settle();
 
-    expect(log.currentStreak, 3);
+    expect(log.chain, (days: 4, mended: 1, atRisk: false));
+    expect(log.currentStreak, 4);
+    expect(log.recentMarks(8), [
+      DayMark.done, DayMark.missed, DayMark.missed, DayMark.done,
+      DayMark.mended, DayMark.done, DayMark.done, DayMark.done,
+    ]);
+  });
+
+  test('a missed yesterday puts the chain at risk until today is practised',
+      () async {
+    final log = await makeLog();
+    await log.log(ActivityType.focus, at: daysAgo(2));
+    await log.log(ActivityType.focus, at: daysAgo(3));
+    await settle();
+
+    expect(log.chain, (days: 2, mended: 0, atRisk: true));
+    expect(log.recentMarks(2), [DayMark.atRisk, DayMark.open]);
+
+    await log.log(ActivityType.urge, meta: {'tag': 'Phone', 'held': true});
+    await settle();
+    expect(log.chain, (days: 3, mended: 1, atRisk: false));
+  });
+
+  test('choosing a trial is not practice; doing it is', () async {
+    final log = await makeLog();
+    await log.log(ActivityType.trial, meta: {'id': 'stairs', 'status': 'chosen'});
+    await settle();
+    expect(log.didAnythingOn(DateTime.now()), isFalse);
+    expect(log.trialOn(DateTime.now()), (id: 'stairs', done: false));
+
+    await log.log(ActivityType.trial, meta: {'id': 'stairs', 'status': 'done'});
+    await settle();
+    expect(log.didAnythingOn(DateTime.now()), isTrue);
+    expect(log.trialOn(DateTime.now()), (id: 'stairs', done: true));
   });
 
   test('streak still counts when today is empty but yesterday was active',

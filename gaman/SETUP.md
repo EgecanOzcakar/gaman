@@ -107,7 +107,10 @@ builds have a "pretend Premium" switch in Settings.
 1. Choose `in_app_purchase` or RevenueCat (still open).
 2. Create the products in Play Console and App Store Connect; ids are
    placeholders in `premiumPlans`: `gaman_premium_yearly`,
-   `gaman_premium_monthly`.
+   `gaman_premium_monthly` (auto-renewing subscriptions) and
+   `gaman_premium_lifetime` (a one-time **non-consumable** in-app product,
+   placeholder $49.99). The lifetime purchase must grant the same
+   entitlement as the subscriptions.
 3. Implement the `BILLING HOOK`s: seed `_premium` from active entitlements,
    then `purchase()`/`restore()`. Replace the placeholder prices with
    store-localised ones and flip `billingAvailable`.

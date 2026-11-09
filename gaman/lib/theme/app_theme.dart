@@ -12,6 +12,7 @@ class AppColors {
   static const waterDark = Color(0xFF8FBDBA); // accent on dark
   static const reed = Color(0xFF7C8C52); // secondary (journal)
   static const brass = Color(0xFF9C7F4E); // tertiary (binaural), used sparingly
+  static const gold = Color(0xFFC9A24A); // kintsugi seams only
   static const clayError = Color(0xFFB5654A); // focus timer / errors
 
   static const mist = Color(0xFFECEDE8); // light background

@@ -3,6 +3,7 @@
   "appTitle": "Gaman",
   "navToday": "Today",
   "navJournal": "Journal",
+  "navEndure": "Endure",
   "navFocus": "Focus",
   "navInsights": "Insights",
   "navSettings": "Settings",
@@ -23,11 +24,11 @@
     }
   },
   "onboarding1Title": "Gaman: patient endurance",
-  "onboarding1Body": "A daily Stoic practice. One quote, one honest look at your day, one task that matters.",
-  "onboarding2Title": "Small practices, every day",
-  "onboarding2Body": "Journal with Stoic prompts, sit for a short meditation, and work in calm, focused blocks.",
+  "onboarding1Body": "Calm apps help you feel better. Gaman helps you get better at hard things: a daily Stoic practice of chosen discomfort.",
+  "onboarding2Title": "Get better at hard things",
+  "onboarding2Body": "Ride out urges for ten minutes. Choose one small hard thing a day. Miss a day? Mend it, just never miss twice.",
   "onboarding3Title": "Your reflections stay yours",
-  "onboarding3Body": "Everything starts private to this device. Sign in later to back it up. Next we'll ask to send one gentle daily reminder; you can change it any time.",
+  "onboarding3Body": "No AI reads your journal and there are no ads. Everything starts private to this device. Sign in later to back it up. Next we'll ask to send one gentle daily reminder; you can change it any time.",
   "translatedBy": "Tr. {translator}",
   "@translatedBy": {
     "placeholders": {
@@ -54,30 +55,22 @@
       }
     }
   },
-  "premiumLockedTooltip": "{name} is a Premium track",
-  "@premiumLockedTooltip": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "weeklyReviewLockedTitle": "Weekly review",
-  "weeklyReviewLockedBody": "Compare this week with last and see your trend. Included with Premium.",
+  "weeklyReviewLockedTitle": "Endurance patterns",
+  "weeklyReviewLockedBody": "Your triggers, your hardest time of day, trials by level and week-over-week trend. Included with Premium.",
   "premiumTitle": "Gaman Premium",
   "premiumFree": "You're on the free plan. See Premium",
   "premiumActive": "Premium is active. Thank you!",
   "devPremiumToggle": "Dev: pretend Premium (debug builds only)",
   "paywallTitle": "Go deeper with Premium",
   "paywallBody": "The daily practice stays free. Premium adds tools for those who want more.",
-  "paywallPerkInsights": "Weekly review and trends in Insights",
-  "paywallPerkBeats": "All five ambient tracks",
+  "paywallPerkInsights": "Endurance patterns: triggers, hardest times, trends",
+  "paywallPerkPrograms": "Programs: 30 days of gaman, the phone fast, Seneca's three weeks",
   "paywallPerkSupport": "Support an independent, ad-free app",
   "restorePurchases": "Restore purchases",
   "restored": "Premium restored",
   "nothingToRestore": "No purchases found",
   "billingUnavailable": "Purchases aren't available in this build yet",
-  "paywallFinePrint": "Placeholder prices. Subscriptions renew automatically until cancelled in your store account settings.",
+  "paywallFinePrint": "Placeholder prices. Subscriptions renew automatically until cancelled in your store account settings. Lifetime is a single payment.",
   "privacyTitle": "Privacy",
   "crashReportsTitle": "Send crash reports",
   "crashReportsBody": "Helps fix bugs. Includes device model and the error, never your journal. Off by default.",

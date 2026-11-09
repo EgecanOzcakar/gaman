@@ -112,6 +112,12 @@ abstract class AppLocalizations {
   /// **'Journal'**
   String get navJournal;
 
+  /// No description provided for @navEndure.
+  ///
+  /// In en, this message translates to:
+  /// **'Endure'**
+  String get navEndure;
+
   /// No description provided for @navFocus.
   ///
   /// In en, this message translates to:
@@ -175,19 +181,19 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding1Body.
   ///
   /// In en, this message translates to:
-  /// **'A daily Stoic practice. One quote, one honest look at your day, one task that matters.'**
+  /// **'Calm apps help you feel better. Gaman helps you get better at hard things: a daily Stoic practice of chosen discomfort.'**
   String get onboarding1Body;
 
   /// No description provided for @onboarding2Title.
   ///
   /// In en, this message translates to:
-  /// **'Small practices, every day'**
+  /// **'Get better at hard things'**
   String get onboarding2Title;
 
   /// No description provided for @onboarding2Body.
   ///
   /// In en, this message translates to:
-  /// **'Journal with Stoic prompts, sit for a short meditation, and work in calm, focused blocks.'**
+  /// **'Ride out urges for ten minutes. Choose one small hard thing a day. Miss a day? Mend it, just never miss twice.'**
   String get onboarding2Body;
 
   /// No description provided for @onboarding3Title.
@@ -199,7 +205,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding3Body.
   ///
   /// In en, this message translates to:
-  /// **'Everything starts private to this device. Sign in later to back it up. Next we\'ll ask to send one gentle daily reminder; you can change it any time.'**
+  /// **'No AI reads your journal and there are no ads. Everything starts private to this device. Sign in later to back it up. Next we\'ll ask to send one gentle daily reminder; you can change it any time.'**
   String get onboarding3Body;
 
   /// No description provided for @translatedBy.
@@ -232,22 +238,16 @@ abstract class AppLocalizations {
   /// **'Pause {name}'**
   String pauseBeat(String name);
 
-  /// No description provided for @premiumLockedTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} is a Premium track'**
-  String premiumLockedTooltip(String name);
-
   /// No description provided for @weeklyReviewLockedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Weekly review'**
+  /// **'Endurance patterns'**
   String get weeklyReviewLockedTitle;
 
   /// No description provided for @weeklyReviewLockedBody.
   ///
   /// In en, this message translates to:
-  /// **'Compare this week with last and see your trend. Included with Premium.'**
+  /// **'Your triggers, your hardest time of day, trials by level and week-over-week trend. Included with Premium.'**
   String get weeklyReviewLockedBody;
 
   /// No description provided for @premiumTitle.
@@ -289,14 +289,14 @@ abstract class AppLocalizations {
   /// No description provided for @paywallPerkInsights.
   ///
   /// In en, this message translates to:
-  /// **'Weekly review and trends in Insights'**
+  /// **'Endurance patterns: triggers, hardest times, trends'**
   String get paywallPerkInsights;
 
-  /// No description provided for @paywallPerkBeats.
+  /// No description provided for @paywallPerkPrograms.
   ///
   /// In en, this message translates to:
-  /// **'All five ambient tracks'**
-  String get paywallPerkBeats;
+  /// **'Programs: 30 days of gaman, the phone fast, Seneca\'s three weeks'**
+  String get paywallPerkPrograms;
 
   /// No description provided for @paywallPerkSupport.
   ///
@@ -331,7 +331,7 @@ abstract class AppLocalizations {
   /// No description provided for @paywallFinePrint.
   ///
   /// In en, this message translates to:
-  /// **'Placeholder prices. Subscriptions renew automatically until cancelled in your store account settings.'**
+  /// **'Placeholder prices. Subscriptions renew automatically until cancelled in your store account settings. Lifetime is a single payment.'**
   String get paywallFinePrint;
 
   /// No description provided for @privacyTitle.

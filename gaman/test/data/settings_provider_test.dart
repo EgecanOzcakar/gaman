@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show DateUtils;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gaman/data/local_repository.dart';
@@ -28,5 +29,28 @@ void main() {
     await s2.ready;
     expect(s2.focusMinutes, 45);
     await repo.dispose();
+  });
+
+  test('program start/stop survives a fresh repo', () async {
+    final repo = LocalRepository();
+    await repo.ready;
+    final s = SettingsProvider(repo);
+    await s.ready;
+    expect(s.programId, '');
+    expect(s.programStartedOn, isNull);
+
+    await s.startProgram('phone_fast');
+    await settle();
+    final repo2 = LocalRepository();
+    await repo2.ready;
+    final s2 = SettingsProvider(repo2);
+    await s2.ready;
+    expect(s2.programId, 'phone_fast');
+    expect(DateUtils.isSameDay(s2.programStartedOn, DateTime.now()), isTrue);
+
+    await s2.stopProgram();
+    await settle();
+    expect(s2.programId, '');
+    expect(s2.programStartedOn, isNull);
   });
 }

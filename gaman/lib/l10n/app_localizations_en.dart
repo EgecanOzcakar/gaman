@@ -18,6 +18,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navJournal => 'Journal';
 
   @override
+  String get navEndure => 'Endure';
+
+  @override
   String get navFocus => 'Focus';
 
   @override
@@ -51,21 +54,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding1Body =>
-      'A daily Stoic practice. One quote, one honest look at your day, one task that matters.';
+      'Calm apps help you feel better. Gaman helps you get better at hard things: a daily Stoic practice of chosen discomfort.';
 
   @override
-  String get onboarding2Title => 'Small practices, every day';
+  String get onboarding2Title => 'Get better at hard things';
 
   @override
   String get onboarding2Body =>
-      'Journal with Stoic prompts, sit for a short meditation, and work in calm, focused blocks.';
+      'Ride out urges for ten minutes. Choose one small hard thing a day. Miss a day? Mend it, just never miss twice.';
 
   @override
   String get onboarding3Title => 'Your reflections stay yours';
 
   @override
   String get onboarding3Body =>
-      'Everything starts private to this device. Sign in later to back it up. Next we\'ll ask to send one gentle daily reminder; you can change it any time.';
+      'No AI reads your journal and there are no ads. Everything starts private to this device. Sign in later to back it up. Next we\'ll ask to send one gentle daily reminder; you can change it any time.';
 
   @override
   String translatedBy(String translator) {
@@ -90,16 +93,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String premiumLockedTooltip(String name) {
-    return '$name is a Premium track';
-  }
-
-  @override
-  String get weeklyReviewLockedTitle => 'Weekly review';
+  String get weeklyReviewLockedTitle => 'Endurance patterns';
 
   @override
   String get weeklyReviewLockedBody =>
-      'Compare this week with last and see your trend. Included with Premium.';
+      'Your triggers, your hardest time of day, trials by level and week-over-week trend. Included with Premium.';
 
   @override
   String get premiumTitle => 'Gaman Premium';
@@ -121,10 +119,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The daily practice stays free. Premium adds tools for those who want more.';
 
   @override
-  String get paywallPerkInsights => 'Weekly review and trends in Insights';
+  String get paywallPerkInsights =>
+      'Endurance patterns: triggers, hardest times, trends';
 
   @override
-  String get paywallPerkBeats => 'All five ambient tracks';
+  String get paywallPerkPrograms =>
+      'Programs: 30 days of gaman, the phone fast, Seneca\'s three weeks';
 
   @override
   String get paywallPerkSupport => 'Support an independent, ad-free app';
@@ -144,7 +144,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paywallFinePrint =>
-      'Placeholder prices. Subscriptions renew automatically until cancelled in your store account settings.';
+      'Placeholder prices. Subscriptions renew automatically until cancelled in your store account settings. Lifetime is a single payment.';
 
   @override
   String get privacyTitle => 'Privacy';

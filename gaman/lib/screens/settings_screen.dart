@@ -502,11 +502,11 @@ Future<void> deleteUserData(String uid) async {
 }
 
 const _practiceLabels = {
-  'meditation': 'Meditation',
+  'meditation': 'Breathe (meditation)',
   'journal': 'Journal',
-  'binaural': 'Binaural Beats',
+  'binaural': 'Sound (ambient tracks)',
   'focus': 'Focus Timer',
-  'todo': 'Daily Goals',
+  'todo': 'One task that matters',
 };
 
 class _Section extends StatelessWidget {

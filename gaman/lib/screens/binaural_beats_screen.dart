@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/audio_provider.dart';
-import '../services/entitlement_service.dart';
-import 'paywall_screen.dart';
 import '../theme/motion.dart';
 import '../widgets/persistent_audio_control.dart';
 
@@ -91,10 +89,6 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                         final beat = audioProvider.beats[index];
                         final isSelected = audioProvider.currentBeat == beat;
                         final isPlaying = isSelected && audioProvider.isPlaying;
-                        final locked = beat.premium &&
-                            !context
-                                .watch<EntitlementService>()
-                                .has(PremiumFeature.extraBeats);
                         final l10n = AppLocalizations.of(context);
 
                         return FadeSlideIn(
@@ -122,17 +116,11 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  tooltip: locked
-                                      ? l10n.premiumLockedTooltip(beat.name)
-                                      : isPlaying
+                                  tooltip: isPlaying
                                           ? l10n.pauseBeat(beat.name)
                                           : l10n.playBeat(beat.name),
                                   onPressed: () {
                                     HapticFeedback.selectionClick();
-                                    if (locked) {
-                                      PaywallScreen.show(context);
-                                      return;
-                                    }
                                     audioProvider.playBeat(beat);
                                   },
                                   iconSize: 30,
@@ -144,12 +132,10 @@ class _BinauralBeatsScreenState extends State<BinauralBeatsScreen> {
                                     transitionBuilder: (c, a) =>
                                         ScaleTransition(scale: a, child: c),
                                     child: Icon(
-                                      locked
-                                          ? Icons.lock_outline
-                                          : isPlaying && isSelected
+                                      isPlaying && isSelected
                                               ? Icons.pause_rounded
                                               : Icons.play_arrow_rounded,
-                                      key: ValueKey((locked, isPlaying)),
+                                      key: ValueKey(isPlaying),
                                     ),
                                   ),
                                 ),
