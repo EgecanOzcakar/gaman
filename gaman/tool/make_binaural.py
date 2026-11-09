@@ -1,7 +1,8 @@
 """Regenerates the five ambient binaural tracks in assets/audio/: a pure sine
-in each ear, centred on 440 Hz and offset by the beat frequency (left
-440 - beat/2, right 440 + beat/2). Made in-house, so there is no licence to
-track. Matches the original tracks' spec: 60 s, 44.1 kHz stereo, 64 kbps
+in each ear, centred on a 200 Hz carrier and offset by the beat frequency
+(left carrier - beat/2, right carrier + beat/2). 200 Hz is softer than the
+original tracks' 440 Hz for long listening. Made in-house, so there is no
+licence to track. Same format as the original tracks: 60 s, 44.1 kHz stereo, 64 kbps
 MP3, peak 0.45.
 
 Every frequency is a whole number of cycles in 60 s and both channels start
@@ -13,7 +14,7 @@ LoopMode.one). Needs numpy and ffmpeg.
 import subprocess, tempfile, wave
 import numpy as np
 
-SR, DUR, CARRIER, PEAK = 44100, 60, 440.0, 0.45
+SR, DUR, CARRIER, PEAK = 44100, 60, 200.0, 0.45
 # file -> beat Hz; keep in sync with `beats` in lib/providers/audio_provider.dart
 TRACKS = {"delta": 2, "theta": 6, "alpha": 10, "beta": 20, "gamma": 40}
 

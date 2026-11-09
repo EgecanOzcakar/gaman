@@ -151,7 +151,7 @@ builds have a "pretend Premium" switch in Settings.
   `assets/google_fonts/`, shown on the in-app licences page).
 - Audio is all made in-house, so there's no third-party licence:
   `assets/audio/chime.mp3` by `tool/make_chime.py`, and the five binaural
-  tracks by `tool/make_binaural.py` (pure sine pairs around 440 Hz).
+  tracks by `tool/make_binaural.py` (pure sine pairs around a 200 Hz carrier).
 - Quotes: `assets/quotes/stoic_quotes.json` uses only pre-1929 translations
   (George Long; Richard Mott Gummere). Spot-check the wording against the
   public-domain texts (e.g. Project Gutenberg, Wikisource) before release.
