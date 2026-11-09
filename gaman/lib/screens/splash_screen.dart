@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
+import '../widgets/enso.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
 
@@ -17,6 +18,7 @@ class _SplashScreenState extends State<SplashScreen>
       'Enduring the seemingly unbearable with patience and dignity';
 
   late final AnimationController _controller;
+  late final Animation<double> _enso;
   late final Animation<double> _wordmark;
   late final Animation<int> _typed;
   bool _navigated = false;
@@ -28,9 +30,13 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 3400),
       vsync: this,
     );
+    _enso = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.3, curve: Curves.easeInOutCubic),
+    );
     _wordmark = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.0, 0.22, curve: Curves.easeOutCubic),
+      curve: const Interval(0.12, 0.34, curve: Curves.easeOutCubic),
     );
     _typed = StepTween(begin: 0, end: _quote.length).animate(
       CurvedAnimation(
@@ -84,17 +90,6 @@ class _SplashScreenState extends State<SplashScreen>
         behavior: HitTestBehavior.opaque,
         child: Stack(
           children: [
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.10,
-                child: Image.asset(
-                  'assets/images/ulysses-147003_1280.png',
-                  fit: BoxFit.cover,
-                  color: Colors.black.withOpacity(0.4),
-                  colorBlendMode: BlendMode.darken,
-                ),
-              ),
-            ),
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Insets.xl),
@@ -102,6 +97,12 @@ class _SplashScreenState extends State<SplashScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Spacer(),
+                    AnimatedBuilder(
+                      animation: _enso,
+                      builder: (context, _) =>
+                          Enso(size: 88, progress: _enso.value, color: fg),
+                    ),
+                    const SizedBox(height: Insets.lg),
                     AnimatedBuilder(
                       animation: _controller,
                       builder: (context, _) => Opacity(

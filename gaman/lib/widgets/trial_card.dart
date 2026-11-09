@@ -75,7 +75,7 @@ class TrialCard extends StatelessWidget {
         const SizedBox(height: Insets.md),
         if (state.done)
           Row(children: [
-            const Icon(Icons.check_circle, color: AppColors.gold),
+            Icon(Icons.check_circle, color: AppColors.gold(context)),
             const SizedBox(width: Insets.sm),
             Text(l10n.trialDoneLabel, style: text.titleSmall),
           ])

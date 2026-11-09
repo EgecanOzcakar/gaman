@@ -7,8 +7,9 @@ import 'package:provider/provider.dart';
 import '../endurance.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/activity_log.dart';
+import '../services/chime.dart';
 import '../theme/app_theme.dart';
-import '../widgets/timer_ring.dart';
+import '../widgets/urge_wave.dart';
 
 /// "I have an urge": name it, ride it out for ten minutes, log the outcome.
 class UrgeScreen extends StatefulWidget {
@@ -41,7 +42,7 @@ class _UrgeScreenState extends State<UrgeScreen> {
       setState(() {});
       if (_over) {
         _tick?.cancel();
-        HapticFeedback.mediumImpact();
+        Chime.play(context);
       }
     });
   }
@@ -100,17 +101,18 @@ class _UrgeScreenState extends State<UrgeScreen> {
       padding: const EdgeInsets.all(Insets.lg),
       children: [
         Center(
-          child: TimerRing(
-            progress: _elapsed.inSeconds / _total.inSeconds,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(_over ? l10n.urgePassed : '$mm:${ss.toString().padLeft(2, '0')}',
-                    style: text.displayMedium),
-                Text(l10n.urgeTag(_tag!), style: text.titleMedium),
-              ],
-            ),
+          child: Column(
+            children: [
+              Text(_over ? l10n.urgePassed : '$mm:${ss.toString().padLeft(2, '0')}',
+                  style: text.displayMedium),
+              Text(l10n.urgeTag(_tag!), style: text.titleMedium),
+            ],
           ),
+        ),
+        const SizedBox(height: Insets.md),
+        Semantics(
+          label: l10n.urgeWaveSemantics((remaining.inSeconds / 60).ceil().clamp(0, urgeMinutes)),
+          child: UrgeWave(progress: _elapsed.inSeconds / _total.inSeconds),
         ),
         const SizedBox(height: Insets.xl),
         AnimatedSwitcher(

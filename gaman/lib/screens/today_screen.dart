@@ -134,7 +134,7 @@ class _StepCard extends StatelessWidget {
           subtitle: Text(subtitle),
           trailing: done
               ? Icon(Icons.check_circle,
-                  color: AppColors.gold,
+                  color: AppColors.gold(context),
                   semanticLabel: AppLocalizations.of(context).done)
               : const Icon(Icons.chevron_right),
           onTap: onTap,

@@ -771,4 +771,39 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsSoundTitle => 'Sound';
+
+  @override
+  String get chimeTitle => 'Bell when a timer ends';
+
+  @override
+  String get chimeBody =>
+      'A soft bell after urges, focus sessions and meditation';
+
+  @override
+  String get shareChain => 'Share your chain';
+
+  @override
+  String shareChainText(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days of gaman.',
+      one: '1 day of gaman.',
+    );
+    return '$_temp0 Never miss twice.';
+  }
+
+  @override
+  String urgeWaveSemantics(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes left',
+      one: '1 minute left',
+    );
+    return '$_temp0';
+  }
 }

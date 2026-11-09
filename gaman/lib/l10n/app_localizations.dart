@@ -1311,6 +1311,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{days, plural, =1{1 practised day, the same as last week} other{{days} practised days, the same as last week}}'**
   String trendSame(int days);
+
+  /// No description provided for @settingsSoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get settingsSoundTitle;
+
+  /// No description provided for @chimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bell when a timer ends'**
+  String get chimeTitle;
+
+  /// No description provided for @chimeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A soft bell after urges, focus sessions and meditation'**
+  String get chimeBody;
+
+  /// No description provided for @shareChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your chain'**
+  String get shareChain;
+
+  /// No description provided for @shareChainText.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day of gaman.} other{{days} days of gaman.}} Never miss twice.'**
+  String shareChainText(int days);
+
+  /// No description provided for @urgeWaveSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{1 minute left} other{{minutes} minutes left}}'**
+  String urgeWaveSemantics(int minutes);
 }
 
 class _AppLocalizationsDelegate

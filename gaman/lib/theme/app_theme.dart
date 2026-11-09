@@ -12,7 +12,13 @@ class AppColors {
   static const waterDark = Color(0xFF8FBDBA); // accent on dark
   static const reed = Color(0xFF7C8C52); // secondary (journal)
   static const brass = Color(0xFF9C7F4E); // tertiary (binaural), used sparingly
-  static const gold = Color(0xFFC9A24A); // kintsugi seams only
+  // Kintsugi gold, used only for mended days and "done" marks. Two tones so
+  // icons keep >= 3:1 contrast: 3.7:1 on paper, 6.1:1 on the night surface.
+  static const goldLight = Color(0xFF9E7A1E);
+  static const goldDark = Color(0xFFC9A24A);
+
+  static Color gold(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? goldDark : goldLight;
   static const clayError = Color(0xFFB5654A); // focus timer / errors
 
   static const mist = Color(0xFFECEDE8); // light background
@@ -72,6 +78,7 @@ class AppTheme {
     ).apply(
       bodyColor: scheme.onSurface,
       displayColor: scheme.onSurface,
+      fontFamilyFallback: const ['GamanKanji'],
     );
 
     return base.copyWith(

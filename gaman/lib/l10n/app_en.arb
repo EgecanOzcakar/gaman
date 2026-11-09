@@ -453,5 +453,25 @@
         "type": "int"
       }
     }
+  },
+  "settingsSoundTitle": "Sound",
+  "chimeTitle": "Bell when a timer ends",
+  "chimeBody": "A soft bell after urges, focus sessions and meditation",
+  "shareChain": "Share your chain",
+  "shareChainText": "{days, plural, =1{1 day of gaman.} other{{days} days of gaman.}} Never miss twice.",
+  "@shareChainText": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "urgeWaveSemantics": "{minutes, plural, =1{1 minute left} other{{minutes} minutes left}}",
+  "@urgeWaveSemantics": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
   }
 }

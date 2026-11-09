@@ -163,7 +163,7 @@ class _Programs extends StatelessWidget {
                         ]),
                       ] else if (active) ...[
                         Row(children: [
-                          const Icon(Icons.check_circle, color: AppColors.gold),
+                          Icon(Icons.check_circle, color: AppColors.gold(context)),
                           const SizedBox(width: Insets.sm),
                           Expanded(child: Text(l10n.programCompleted)),
                           TextButton(

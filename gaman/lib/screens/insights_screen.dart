@@ -1,5 +1,9 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../endurance.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/activity_log.dart';
@@ -11,6 +15,8 @@ import '../theme/motion.dart';
 
 /// Endurance, not activity: urges held, trials done, the chain. Premium adds
 /// patterns (triggers, hardest time, trials by level, week-over-week).
+final _chainKey = GlobalKey();
+
 class InsightsScreen extends StatelessWidget {
   const InsightsScreen({super.key});
 
@@ -41,12 +47,29 @@ class InsightsScreen extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(Insets.lg, Insets.lg, Insets.lg, Insets.xxl),
       children: [
         FadeSlideIn(
-          child: Text(l10n.insightsTitle, style: Theme.of(context).textTheme.headlineMedium),
+          child: Row(children: [
+            Expanded(
+              child: Text(l10n.insightsTitle,
+                  style: Theme.of(context).textTheme.headlineMedium),
+            ),
+            if (log.chain.days > 0)
+              IconButton(
+                tooltip: l10n.shareChain,
+                icon: const Icon(Icons.ios_share),
+                onPressed: () => _shareChain(context, log.chain.days),
+              ),
+          ]),
         ),
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
           delay: const Duration(milliseconds: 60),
-          child: _ChainCard(log: log),
+          child: RepaintBoundary(
+            key: _chainKey,
+            child: ColoredBox(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: _ChainCard(log: log),
+            ),
+          ),
         ),
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
@@ -89,6 +112,25 @@ class InsightsScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Shares the chain card as an image: what users post is the marketing.
+  Future<void> _shareChain(BuildContext context, int days) async {
+    final text = AppLocalizations.of(context).shareChainText(days);
+    final boundary =
+        _chainKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null) return;
+    try {
+      final image = await boundary.toImage(pixelRatio: 3);
+      final png = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (png == null) return;
+      await Share.shareXFiles([
+        XFile.fromData(png.buffer.asUint8List(),
+            name: 'gaman-chain.png', mimeType: 'image/png'),
+      ], text: text);
+    } catch (e) {
+      debugPrint('Sharing the chain failed: $e');
+    }
   }
 
   String _summary(AppLocalizations l10n, UrgeStats urges, int trials, int focusN,

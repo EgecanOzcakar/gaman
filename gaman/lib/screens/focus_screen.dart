@@ -7,6 +7,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../data/repository.dart';
 import '../providers/activity_log.dart';
 import '../providers/settings_provider.dart';
+import '../services/chime.dart';
 import '../theme/app_theme.dart';
 import '../widgets/timer_ring.dart';
 
@@ -202,6 +203,7 @@ class _FocusScreenState extends State<FocusScreen>
       }
     });
     if (completed) {
+      Chime.play(context);
       _dialog('Focus complete',
           'Nice work. Time for a ${_isLongBreak ? 'long' : 'short'} break.');
     }
@@ -215,6 +217,7 @@ class _FocusScreenState extends State<FocusScreen>
       _endsAt = null;
       _remainingSeconds = _selectedDuration * 60;
     });
+    Chime.play(context);
     _dialog('Break over', 'Ready for another focus session?');
   }
 

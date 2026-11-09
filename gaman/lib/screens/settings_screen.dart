@@ -16,6 +16,7 @@ import '../services/auth_service.dart';
 import '../services/crash_reporting.dart';
 import '../services/data_export.dart';
 import '../services/entitlement_service.dart';
+import '../services/chime.dart';
 import '../theme/app_theme.dart';
 import 'paywall_screen.dart';
 
@@ -92,6 +93,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onChanged: (v) => prefs.setEnabled(id, v),
                     ),
                 ],
+              ),
+            ),
+          ),
+          const SizedBox(height: Insets.lg),
+          _Section(
+            title: AppLocalizations.of(context).settingsSoundTitle,
+            child: Consumer<FeaturePrefs>(
+              builder: (context, prefs, _) => SwitchListTile(
+                title: Text(AppLocalizations.of(context).chimeTitle),
+                subtitle: Text(AppLocalizations.of(context).chimeBody),
+                value: prefs.isEnabled(Chime.prefId),
+                onChanged: (v) => prefs.setEnabled(Chime.prefId, v),
               ),
             ),
           ),
