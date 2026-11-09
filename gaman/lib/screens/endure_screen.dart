@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../endurance.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/activity_log.dart';
 import '../providers/feature_prefs.dart';
 import '../providers/settings_provider.dart';
@@ -26,20 +27,21 @@ class EndureScreen extends StatelessWidget {
     final log = context.watch<ActivityLog>();
     final todayUrges = urgeStats(log.onDay(DateTime.now()));
     final features = context.watch<FeaturePrefs>();
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(Insets.lg, Insets.lg, Insets.lg, Insets.xxl),
       children: [
-        FadeSlideIn(child: Text('Endure', style: text.headlineMedium)),
+        FadeSlideIn(child: Text(l10n.navEndure, style: text.headlineMedium)),
         const SizedBox(height: Insets.xs),
-        Text('我慢: bearing what is hard, with patience and dignity.',
+        Text(l10n.endureSubtitle,
             style: text.bodyMedium?.copyWith(color: scheme.onSurface.withValues(alpha: 0.7))),
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
           delay: const Duration(milliseconds: 60),
           child: Semantics(
             button: true,
-            label: 'I have an urge',
+            label: l10n.urgeButton,
             excludeSemantics: true,
             child: PressScale(
             onTap: () => Navigator.push(
@@ -58,12 +60,12 @@ class EndureScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('I have an urge',
+                        Text(l10n.urgeButton,
                             style: text.titleLarge?.copyWith(color: scheme.onPrimary)),
                         Text(
                           todayUrges.total == 0
-                              ? 'Ride it out for ten minutes before you decide.'
-                              : 'Today: ${todayUrges.held} of ${todayUrges.total} held.',
+                              ? l10n.urgeButtonEmpty
+                              : l10n.urgeButtonToday(todayUrges.held, todayUrges.total),
                           style: text.bodyMedium?.copyWith(color: scheme.onPrimary),
                         ),
                       ],
@@ -78,20 +80,20 @@ class EndureScreen extends StatelessWidget {
         const SizedBox(height: Insets.lg),
         const FadeSlideIn(delay: Duration(milliseconds: 120), child: TrialCard()),
         const SizedBox(height: Insets.lg),
-        Text('Programs', style: text.titleLarge),
+        Text(l10n.programsTitle, style: text.titleLarge),
         const SizedBox(height: Insets.sm),
         const _Programs(),
         if (features.isEnabled('meditation') || features.isEnabled('binaural')) ...[
           const SizedBox(height: Insets.lg),
-          Text('Tools for the hard moments', style: text.titleLarge),
+          Text(l10n.toolsTitle, style: text.titleLarge),
           const SizedBox(height: Insets.sm),
           Card(
             child: Column(children: [
               if (features.isEnabled('meditation'))
                 ListTile(
                   leading: const Icon(Icons.air),
-                  title: const Text('Breathe'),
-                  subtitle: const Text('A short guided sit'),
+                  title: Text(l10n.toolBreathe),
+                  subtitle: Text(l10n.toolBreatheBody),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const MeditationScreen())),
@@ -99,8 +101,8 @@ class EndureScreen extends StatelessWidget {
               if (features.isEnabled('binaural'))
                 ListTile(
                   leading: const Icon(Icons.graphic_eq),
-                  title: const Text('Sound'),
-                  subtitle: const Text('Ambient tracks to sit or work with'),
+                  title: Text(l10n.toolSound),
+                  subtitle: Text(l10n.toolSoundBody),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const BinauralBeatsScreen())),
@@ -109,7 +111,7 @@ class EndureScreen extends StatelessWidget {
           ),
         ],
         const SizedBox(height: Insets.lg),
-        Text(trialSafetyNote, style: text.bodySmall),
+        Text(l10n.trialSafetyNote, style: text.bodySmall),
       ],
     );
   }
@@ -123,6 +125,7 @@ class _Programs extends StatelessWidget {
     final settings = context.watch<SettingsProvider>();
     final unlocked = context.watch<EntitlementService>().has(PremiumFeature.programs);
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
 
     return Column(
@@ -143,42 +146,42 @@ class _Programs extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        Expanded(child: Text(p.title, style: text.titleMedium)),
-                        Text('${p.days} days', style: text.labelMedium),
+                        Expanded(child: Text(l10n.programTitle(p.id), style: text.titleMedium)),
+                        Text(l10n.programDays(p.days), style: text.labelMedium),
                       ]),
                       const SizedBox(height: Insets.xs),
-                      Text(p.blurb, style: text.bodyMedium),
+                      Text(l10n.programBlurb(p.id), style: text.bodyMedium),
                       const SizedBox(height: Insets.sm),
                       if (active && day != null) ...[
                         LinearProgressIndicator(value: day / p.days),
                         const SizedBox(height: Insets.sm),
                         Row(children: [
-                          Expanded(child: Text('Day $day of ${p.days}')),
+                          Expanded(child: Text(l10n.programDayOf(day, p.days))),
                           TextButton(
                               onPressed: settings.stopProgram,
-                              child: const Text('Stop')),
+                              child: Text(l10n.programStop)),
                         ]),
                       ] else if (active) ...[
                         Row(children: [
                           const Icon(Icons.check_circle, color: AppColors.gold),
                           const SizedBox(width: Insets.sm),
-                          const Expanded(child: Text('Completed')),
+                          Expanded(child: Text(l10n.programCompleted)),
                           TextButton(
                               onPressed: settings.stopProgram,
-                              child: const Text('Clear')),
+                              child: Text(l10n.programClear)),
                         ]),
                       ] else if (!unlocked)
                         TextButton.icon(
                           onPressed: () => PaywallScreen.show(context),
                           icon: const Icon(Icons.lock_outline),
-                          label: const Text('Premium'),
+                          label: Text(l10n.programPremium),
                         )
                       else
                         FilledButton.tonal(
                           onPressed: () => settings.startProgram(p.id),
                           child: Text(settings.programId.isEmpty
-                              ? 'Start'
-                              : 'Switch to this'),
+                              ? l10n.programStart
+                              : l10n.programSwitch),
                         ),
                     ],
                   );

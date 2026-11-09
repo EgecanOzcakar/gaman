@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../endurance.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../widgets/timer_ring.dart';
@@ -51,10 +52,9 @@ class _UrgeScreenState extends State<UrgeScreen> {
     await context.read<ActivityLog>().log(ActivityType.urge,
         durationSeconds: secs, meta: {'tag': _tag, 'held': held});
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(held
-            ? 'Gaman. That one is yours.'
-            : 'Noted, not judged. Next time, ride it a little longer.')));
+        content: Text(held ? l10n.urgeHeldSnack : l10n.urgeGaveInSnack)));
     Navigator.pop(context, held);
   }
 
@@ -67,34 +67,32 @@ class _UrgeScreenState extends State<UrgeScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Endure')),
-      body: _tag == null ? _pickTag(text) : _riding(text),
+      appBar: AppBar(title: Text(l10n.navEndure)),
+      body: _tag == null ? _pickTag(text, l10n) : _riding(text, l10n),
     );
   }
 
-  Widget _pickTag(TextTheme text) => ListView(
+  Widget _pickTag(TextTheme text, AppLocalizations l10n) => ListView(
         padding: const EdgeInsets.all(Insets.lg),
         children: [
-          Text('What is pulling at you?', style: text.headlineSmall),
+          Text(l10n.urgePickTitle, style: text.headlineSmall),
           const SizedBox(height: Insets.sm),
-          Text(
-              'Name it, then give it ten minutes before you decide. '
-              'Most urges pass on their own.',
-              style: text.bodyLarge),
+          Text(l10n.urgePickBody, style: text.bodyLarge),
           const SizedBox(height: Insets.lg),
           Wrap(
             spacing: Insets.sm,
             runSpacing: Insets.sm,
             children: [
               for (final t in urgeTags)
-                ActionChip(label: Text(t), onPressed: () => _start(t)),
+                ActionChip(label: Text(l10n.urgeTag(t)), onPressed: () => _start(t)),
             ],
           ),
         ],
       );
 
-  Widget _riding(TextTheme text) {
+  Widget _riding(TextTheme text, AppLocalizations l10n) {
     final remaining = _total - _elapsed;
     final mm = remaining.isNegative ? 0 : remaining.inMinutes;
     final ss = remaining.isNegative ? 0 : remaining.inSeconds % 60;
@@ -107,9 +105,9 @@ class _UrgeScreenState extends State<UrgeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_over ? 'Passed' : '$mm:${ss.toString().padLeft(2, '0')}',
+                Text(_over ? l10n.urgePassed : '$mm:${ss.toString().padLeft(2, '0')}',
                     style: text.displayMedium),
-                Text(_tag!, style: text.titleMedium),
+                Text(l10n.urgeTag(_tag!), style: text.titleMedium),
               ],
             ),
           ),
@@ -119,9 +117,9 @@ class _UrgeScreenState extends State<UrgeScreen> {
           duration: const Duration(milliseconds: 400),
           child: Text(
             _over
-                ? 'The wave has passed. Did you hold?'
-                : guidanceAt(_elapsed),
-            key: ValueKey(_over ? 'over' : guidanceAt(_elapsed)),
+                ? l10n.urgeAskHeld
+                : l10n.urgeGuidance(guidanceIndexAt(_elapsed)),
+            key: ValueKey(_over ? -1 : guidanceIndexAt(_elapsed)),
             textAlign: TextAlign.center,
             style: text.titleLarge?.copyWith(height: 1.4),
           ),
@@ -129,12 +127,12 @@ class _UrgeScreenState extends State<UrgeScreen> {
         const SizedBox(height: Insets.xl),
         FilledButton(
           onPressed: () => _finish(true),
-          child: Text(_over ? 'I held' : 'It passed. I held'),
+          child: Text(_over ? l10n.urgeHeld : l10n.urgeHeldEarly),
         ),
         const SizedBox(height: Insets.sm),
         OutlinedButton(
           onPressed: () => _finish(false),
-          child: const Text('I gave in'),
+          child: Text(l10n.urgeGaveIn),
         ),
       ],
     );

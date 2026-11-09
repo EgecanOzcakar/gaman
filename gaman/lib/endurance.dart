@@ -1,4 +1,5 @@
 import 'data/models.dart';
+import 'l10n/app_localizations.dart';
 
 /// Gaman's core practice: enduring small hard things on purpose.
 /// Urges (in-the-moment), trials (one chosen discomfort a day) and programs
@@ -7,62 +8,49 @@ import 'data/models.dart';
 
 const urgeMinutes = 10;
 
+/// Stored on urge events as stable keys; shown via [EnduranceL10n.urgeTag].
 const urgeTags = ['Phone', 'Food', 'Smoking', 'Drink', 'Anger', 'Quitting', 'Other'];
 
-/// Rotates every couple of minutes during an urge. Urge-surfing guidance plus
-/// a little Stoicism; no medical claims.
-const urgeGuidance = [
-  'Notice where you feel it. Name it: "this is an urge."',
-  'Urges are waves. They rise, peak and fall, usually within minutes.',
-  'Breathe out longer than you breathe in.',
-  '"No one is free who is a slave to the body." (Seneca)',
-  'You don\'t have to win forever. Just these ten minutes.',
-  'It is already weaker than when you started.',
-];
+/// Index of the guidance line to show; rotates every 100 s. Lines are
+/// urge-surfing guidance plus a little Stoicism; no medical claims.
+const urgeGuidanceCount = 6;
 
-String guidanceAt(Duration elapsed) =>
-    urgeGuidance[(elapsed.inSeconds ~/ 100) % urgeGuidance.length];
+int guidanceIndexAt(Duration elapsed) =>
+    (elapsed.inSeconds ~/ 100) % urgeGuidanceCount;
 
 /// Mild, voluntary discomforts. Kept deliberately gentle: no fasting, nothing
-/// that needs medical judgement beyond the [caution] shown with it.
+/// that needs medical judgement beyond the caution shown with it.
+/// Titles live in the ARB file (see [EnduranceL10n.trialTitle]).
 class Trial {
   final String id;
-  final String title;
 
   /// 1 gentle, 2 firm, 3 hard.
   final int level;
-  final String? caution;
-  const Trial(this.id, this.title, this.level, [this.caution]);
+
+  /// Cold-water trials show [AppLocalizations.trialColdCaution].
+  final bool cold;
+  const Trial(this.id, this.level, {this.cold = false});
 }
 
-const _coldCaution =
-    'Skip this if you have a heart condition, are pregnant or feel unwell.';
-
 const trials = <Trial>[
-  Trial('phone_first_hour', 'Keep your phone in another room for the first hour of the day', 1),
-  Trial('stairs', 'Take the stairs all day', 1),
-  Trial('screenless_meal', 'Eat one meal with no screen', 1),
-  Trial('snack_wait', 'Wait ten minutes before any snack', 1),
-  Trial('nothing_later', 'Make your bed and leave no dish for later', 1),
-  Trial('cold_finish', 'Finish your shower with 30 seconds of cold water', 2, _coldCaution),
-  Trial('no_social', 'No social media today', 2),
-  Trial('avoided_first', 'Do the task you\'re avoiding before anything else', 2),
-  Trial('eat_plain', 'Eat plainly today: no sweets, no snacks', 2),
-  Trial('walk_weather', 'Walk 30 minutes, whatever the weather (dress for it)', 2),
-  Trial('awkward_thing', 'Say the awkward thing you\'ve been putting off, kindly', 2),
-  Trial('practise_poverty', 'Eat simply and dress simply. Ask: is this what I feared? (Seneca)', 2),
-  Trial('phone_bedroom', 'Sleep with your phone outside the bedroom', 3),
-  Trial('no_complaining', 'A full day without complaining. Slip? Start again.', 3),
-  Trial('cold_full', 'A full two-minute cold shower', 3, _coldCaution),
-  Trial('phone_day', 'A day with no browser or social apps (calls and messages are fine)', 3),
-  Trial('one_thing', 'A day of doing one thing at a time: no multitasking', 3),
+  Trial('phone_first_hour', 1),
+  Trial('stairs', 1),
+  Trial('screenless_meal', 1),
+  Trial('snack_wait', 1),
+  Trial('nothing_later', 1),
+  Trial('cold_finish', 2, cold: true),
+  Trial('no_social', 2),
+  Trial('avoided_first', 2),
+  Trial('eat_plain', 2),
+  Trial('walk_weather', 2),
+  Trial('awkward_thing', 2),
+  Trial('practise_poverty', 2),
+  Trial('phone_bedroom', 3),
+  Trial('no_complaining', 3),
+  Trial('cold_full', 3, cold: true),
+  Trial('phone_day', 3),
+  Trial('one_thing', 3),
 ];
-
-const levelNames = {1: 'Gentle', 2: 'Firm', 3: 'Hard'};
-
-const trialSafetyNote =
-    'Trials should feel uncomfortable, never harmful. Skip any that don\'t suit '
-    'your health and stop if something feels wrong. This isn\'t medical advice.';
 
 Trial? trialById(String? id) {
   for (final t in trials) {
@@ -72,33 +60,29 @@ Trial? trialById(String? id) {
 }
 
 /// A multi-week sequence of trials. Premium.
+/// Titles and blurbs live in the ARB file (see [EnduranceL10n]).
 class Program {
   final String id;
-  final String title;
-  final String blurb;
   final int days;
   final List<String> sequence;
-  const Program(this.id, this.title, this.blurb, this.days, this.sequence);
+  const Program(this.id, this.days, this.sequence);
 
   /// Trial for 1-based [day], cycling through [sequence].
   Trial trialForDay(int day) => trialById(sequence[(day - 1) % sequence.length])!;
 }
 
 const programs = <Program>[
-  Program('thirty_days', '30 days of gaman',
-      'A month that starts gentle and ends hard, one trial a day.', 30, [
+  Program('thirty_days', 30, [
     'phone_first_hour', 'stairs', 'screenless_meal', 'snack_wait', 'nothing_later',
     'cold_finish', 'no_social', 'avoided_first', 'eat_plain', 'walk_weather',
     'awkward_thing', 'practise_poverty', 'phone_bedroom', 'no_complaining',
     'cold_full', 'phone_day', 'one_thing',
   ]),
-  Program('phone_fast', 'The phone fast',
-      'Two weeks to loosen the phone\'s grip, a little more each day.', 14, [
+  Program('phone_fast', 14, [
     'phone_first_hour', 'screenless_meal', 'no_social', 'phone_bedroom',
     'phone_first_hour', 'no_social', 'phone_day',
   ]),
-  Program('senecas_month', 'Seneca\'s three weeks',
-      'Voluntary simplicity: rehearse having less, so you fear it less.', 21, [
+  Program('senecas_month', 21, [
     'practise_poverty', 'eat_plain', 'walk_weather', 'no_complaining',
     'nothing_later', 'one_thing', 'cold_finish',
   ]),
@@ -170,4 +154,83 @@ Map<int, int> trialsByLevel(Iterable<ActivityEvent> events) {
     if (t != null) out[t.level] = out[t.level]! + 1;
   }
   return out;
+}
+
+/// Display text for catalogue ids. Unknown ids fall back to the id itself.
+extension EnduranceL10n on AppLocalizations {
+  String urgeTag(String tag) => switch (tag) {
+        'Phone' => urgeTagPhone,
+        'Food' => urgeTagFood,
+        'Smoking' => urgeTagSmoking,
+        'Drink' => urgeTagDrink,
+        'Anger' => urgeTagAnger,
+        'Quitting' => urgeTagQuitting,
+        'Other' => urgeTagOther,
+        _ => tag,
+      };
+
+  String urgeGuidance(int i) => switch (i) {
+        0 => urgeGuidance0,
+        1 => urgeGuidance1,
+        2 => urgeGuidance2,
+        3 => urgeGuidance3,
+        4 => urgeGuidance4,
+        _ => urgeGuidance5,
+      };
+
+  String levelName(int level) => switch (level) {
+        1 => levelGentle,
+        2 => levelFirm,
+        _ => levelHard,
+      };
+
+  String trialTitle(String id) => switch (id) {
+        'phone_first_hour' => trialPhoneFirstHour,
+        'stairs' => trialStairs,
+        'screenless_meal' => trialScreenlessMeal,
+        'snack_wait' => trialSnackWait,
+        'nothing_later' => trialNothingLater,
+        'cold_finish' => trialColdFinish,
+        'no_social' => trialNoSocial,
+        'avoided_first' => trialAvoidedFirst,
+        'eat_plain' => trialEatPlain,
+        'walk_weather' => trialWalkWeather,
+        'awkward_thing' => trialAwkwardThing,
+        'practise_poverty' => trialPractisePoverty,
+        'phone_bedroom' => trialPhoneBedroom,
+        'no_complaining' => trialNoComplaining,
+        'cold_full' => trialColdFull,
+        'phone_day' => trialPhoneDay,
+        'one_thing' => trialOneThing,
+        _ => id,
+      };
+
+  String? trialCaution(Trial t) => t.cold ? trialColdCaution : null;
+
+  String programTitle(String id) => switch (id) {
+        'thirty_days' => programThirtyDays,
+        'phone_fast' => programPhoneFast,
+        'senecas_month' => programSenecasMonth,
+        _ => id,
+      };
+
+  String programBlurb(String id) => switch (id) {
+        'thirty_days' => programThirtyDaysBlurb,
+        'phone_fast' => programPhoneFastBlurb,
+        'senecas_month' => programSenecasMonthBlurb,
+        _ => '',
+      };
+
+  String partOfDayName(String part) => switch (part) {
+        'morning' => partMorning,
+        'afternoon' => partAfternoon,
+        'evening' => partEvening,
+        _ => partNight,
+      };
+
+  /// "a, b and c" using the locale's separators.
+  String joinList(List<String> parts) => parts.length < 2
+      ? parts.join()
+      : '${parts.sublist(0, parts.length - 1).join(listSeparator)}'
+          '$listLastSeparator${parts.last}';
 }

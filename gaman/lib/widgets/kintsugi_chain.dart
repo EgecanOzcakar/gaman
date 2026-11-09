@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 
@@ -18,7 +19,7 @@ class KintsugiChain extends StatelessWidget {
     final done = marks.where((m) => m == DayMark.done).length;
     final mended = marks.where((m) => m == DayMark.mended).length;
     return Semantics(
-      label: 'Last ${marks.length} days: $done practised, $mended mended',
+      label: AppLocalizations.of(context).chainSemantics(marks.length, done, mended),
       child: SizedBox(
         height: height,
         width: double.infinity,
@@ -96,7 +97,7 @@ class _ChainPainter extends CustomPainter {
       old.marks != marks || old.stone != stone;
 }
 
-/// Compact summary: "12 days · 2 mended".
+/// Compact summary, e.g. "12 days · 2 mended".
 class ChainChip extends StatelessWidget {
   const ChainChip({super.key, required this.days, required this.mended, this.atRisk = false});
   final int days;
@@ -107,9 +108,12 @@ class ChainChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final color = atRisk ? scheme.error : scheme.primary;
-    final text = StringBuffer('$days day${days == 1 ? '' : 's'}');
-    if (mended > 0) text.write(' · $mended mended');
-    if (atRisk) text.write(' · practise today to mend');
+    final l10n = AppLocalizations.of(context);
+    final text = [
+      l10n.chainDays(days),
+      if (mended > 0) l10n.chainMended(mended),
+      if (atRisk) l10n.chainAtRisk,
+    ].join(l10n.summarySeparator);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: Insets.sm, vertical: Insets.xs),
       decoration: BoxDecoration(
@@ -123,7 +127,7 @@ class ChainChip extends StatelessWidget {
           const SizedBox(width: Insets.xs),
           Flexible(
             child: Text(
-              text.toString(),
+              text,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,

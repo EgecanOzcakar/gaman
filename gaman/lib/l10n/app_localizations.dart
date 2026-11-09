@@ -495,6 +495,822 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark task {number} done'**
   String markTaskDone(int number);
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get greetingEvening;
+
+  /// No description provided for @todaysPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s practice'**
+  String get todaysPractice;
+
+  /// No description provided for @morningStepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning: premeditatio'**
+  String get morningStepTitle;
+
+  /// No description provided for @morningStepBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What could go wrong today, and how will you meet it?'**
+  String get morningStepBody;
+
+  /// No description provided for @eveningStepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening review'**
+  String get eveningStepTitle;
+
+  /// No description provided for @eveningStepBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What went well, what could be better, what was left undone.'**
+  String get eveningStepBody;
+
+  /// No description provided for @eveningStepToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today: {summary}.'**
+  String eveningStepToday(String summary);
+
+  /// No description provided for @eveningUrgesHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'{held} of {total} urges held'**
+  String eveningUrgesHeld(int held, int total);
+
+  /// No description provided for @eveningTrialDone.
+  ///
+  /// In en, this message translates to:
+  /// **'trial done'**
+  String get eveningTrialDone;
+
+  /// No description provided for @eveningTrialOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'trial still open'**
+  String get eveningTrialOpen;
+
+  /// No description provided for @summarySeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' · '**
+  String get summarySeparator;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @oneTaskDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The one task that matters today'**
+  String get oneTaskDialogTitle;
+
+  /// No description provided for @oneTaskHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Do the hard thing first'**
+  String get oneTaskHint;
+
+  /// No description provided for @oneTaskEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One task that matters'**
+  String get oneTaskEmptyTitle;
+
+  /// No description provided for @oneTaskEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set. Tap to choose it.'**
+  String get oneTaskEmptyBody;
+
+  /// No description provided for @oneTaskChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to change'**
+  String get oneTaskChange;
+
+  /// No description provided for @chainDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String chainDays(int days);
+
+  /// No description provided for @chainMended.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} mended'**
+  String chainMended(int count);
+
+  /// No description provided for @chainAtRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'practise today to mend'**
+  String get chainAtRisk;
+
+  /// No description provided for @chainSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {days} days: {done} practised, {mended} mended'**
+  String chainSemantics(int days, int done, int mended);
+
+  /// No description provided for @chainCardDays.
+  ///
+  /// In en, this message translates to:
+  /// **'day chain'**
+  String get chainCardDays;
+
+  /// No description provided for @chainCardDaysMended.
+  ///
+  /// In en, this message translates to:
+  /// **'day chain, {count} mended'**
+  String chainCardDaysMended(int count);
+
+  /// No description provided for @chainCardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No chain yet. Practise once today.'**
+  String get chainCardEmpty;
+
+  /// No description provided for @chainCardAtRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'You missed yesterday. Practise today and it\'s mended in gold.'**
+  String get chainCardAtRisk;
+
+  /// No description provided for @chainCardExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Never miss twice: a single missed day is mended in gold, not lost.'**
+  String get chainCardExplain;
+
+  /// No description provided for @trialCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s trial'**
+  String get trialCardTitle;
+
+  /// No description provided for @trialProgramDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of {program}'**
+  String trialProgramDay(int day, String program);
+
+  /// No description provided for @trialAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get trialAccept;
+
+  /// No description provided for @trialChooseAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another'**
+  String get trialChooseAnother;
+
+  /// No description provided for @trialEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One small hard thing, chosen on purpose.'**
+  String get trialEmptyBody;
+
+  /// No description provided for @trialChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose today\'s trial'**
+  String get trialChoose;
+
+  /// No description provided for @trialLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{level} trial'**
+  String trialLevelLabel(String level);
+
+  /// No description provided for @trialDoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Done. Gaman.'**
+  String get trialDoneLabel;
+
+  /// No description provided for @trialIDidIt.
+  ///
+  /// In en, this message translates to:
+  /// **'I did it'**
+  String get trialIDidIt;
+
+  /// No description provided for @trialChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get trialChange;
+
+  /// No description provided for @endureSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'我慢: bearing what is hard, with patience and dignity.'**
+  String get endureSubtitle;
+
+  /// No description provided for @urgeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'I have an urge'**
+  String get urgeButton;
+
+  /// No description provided for @urgeButtonEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Ride it out for ten minutes before you decide.'**
+  String get urgeButtonEmpty;
+
+  /// No description provided for @urgeButtonToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today: {held} of {total} held.'**
+  String urgeButtonToday(int held, int total);
+
+  /// No description provided for @programsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs'**
+  String get programsTitle;
+
+  /// No description provided for @toolsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools for the hard moments'**
+  String get toolsTitle;
+
+  /// No description provided for @toolBreathe.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathe'**
+  String get toolBreathe;
+
+  /// No description provided for @toolBreatheBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A short guided sit'**
+  String get toolBreatheBody;
+
+  /// No description provided for @toolSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get toolSound;
+
+  /// No description provided for @toolSoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ambient tracks to sit or work with'**
+  String get toolSoundBody;
+
+  /// No description provided for @programDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String programDays(int days);
+
+  /// No description provided for @programDayOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of {days}'**
+  String programDayOf(int day, int days);
+
+  /// No description provided for @programStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get programStop;
+
+  /// No description provided for @programCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get programCompleted;
+
+  /// No description provided for @programClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get programClear;
+
+  /// No description provided for @programPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get programPremium;
+
+  /// No description provided for @programStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get programStart;
+
+  /// No description provided for @programSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to this'**
+  String get programSwitch;
+
+  /// No description provided for @urgePickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is pulling at you?'**
+  String get urgePickTitle;
+
+  /// No description provided for @urgePickBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Name it, then give it ten minutes before you decide. Most urges pass on their own.'**
+  String get urgePickBody;
+
+  /// No description provided for @urgePassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Passed'**
+  String get urgePassed;
+
+  /// No description provided for @urgeAskHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'The wave has passed. Did you hold?'**
+  String get urgeAskHeld;
+
+  /// No description provided for @urgeHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'I held'**
+  String get urgeHeld;
+
+  /// No description provided for @urgeHeldEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'It passed. I held'**
+  String get urgeHeldEarly;
+
+  /// No description provided for @urgeGaveIn.
+  ///
+  /// In en, this message translates to:
+  /// **'I gave in'**
+  String get urgeGaveIn;
+
+  /// No description provided for @urgeHeldSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Gaman. That one is yours.'**
+  String get urgeHeldSnack;
+
+  /// No description provided for @urgeGaveInSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Noted, not judged. Next time, ride it a little longer.'**
+  String get urgeGaveInSnack;
+
+  /// No description provided for @urgeTagPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get urgeTagPhone;
+
+  /// No description provided for @urgeTagFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get urgeTagFood;
+
+  /// No description provided for @urgeTagSmoking.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking'**
+  String get urgeTagSmoking;
+
+  /// No description provided for @urgeTagDrink.
+  ///
+  /// In en, this message translates to:
+  /// **'Drink'**
+  String get urgeTagDrink;
+
+  /// No description provided for @urgeTagAnger.
+  ///
+  /// In en, this message translates to:
+  /// **'Anger'**
+  String get urgeTagAnger;
+
+  /// No description provided for @urgeTagQuitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Quitting'**
+  String get urgeTagQuitting;
+
+  /// No description provided for @urgeTagOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get urgeTagOther;
+
+  /// No description provided for @urgeGuidance0.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice where you feel it. Name it: \"this is an urge.\"'**
+  String get urgeGuidance0;
+
+  /// No description provided for @urgeGuidance1.
+  ///
+  /// In en, this message translates to:
+  /// **'Urges are waves. They rise, peak and fall, usually within minutes.'**
+  String get urgeGuidance1;
+
+  /// No description provided for @urgeGuidance2.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathe out longer than you breathe in.'**
+  String get urgeGuidance2;
+
+  /// No description provided for @urgeGuidance3.
+  ///
+  /// In en, this message translates to:
+  /// **'\"No one is free who is a slave to the body.\" (Seneca)'**
+  String get urgeGuidance3;
+
+  /// No description provided for @urgeGuidance4.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have to win forever. Just these ten minutes.'**
+  String get urgeGuidance4;
+
+  /// No description provided for @urgeGuidance5.
+  ///
+  /// In en, this message translates to:
+  /// **'It is already weaker than when you started.'**
+  String get urgeGuidance5;
+
+  /// No description provided for @levelGentle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle'**
+  String get levelGentle;
+
+  /// No description provided for @levelFirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Firm'**
+  String get levelFirm;
+
+  /// No description provided for @levelHard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get levelHard;
+
+  /// No description provided for @trialSafetyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Trials should feel uncomfortable, never harmful. Skip any that don\'t suit your health and stop if something feels wrong. This isn\'t medical advice.'**
+  String get trialSafetyNote;
+
+  /// No description provided for @trialColdCaution.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this if you have a heart condition, are pregnant or feel unwell.'**
+  String get trialColdCaution;
+
+  /// No description provided for @trialPhoneFirstHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your phone in another room for the first hour of the day'**
+  String get trialPhoneFirstHour;
+
+  /// No description provided for @trialStairs.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the stairs all day'**
+  String get trialStairs;
+
+  /// No description provided for @trialScreenlessMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Eat one meal with no screen'**
+  String get trialScreenlessMeal;
+
+  /// No description provided for @trialSnackWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait ten minutes before any snack'**
+  String get trialSnackWait;
+
+  /// No description provided for @trialNothingLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Make your bed and leave no dish for later'**
+  String get trialNothingLater;
+
+  /// No description provided for @trialColdFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish your shower with 30 seconds of cold water'**
+  String get trialColdFinish;
+
+  /// No description provided for @trialNoSocial.
+  ///
+  /// In en, this message translates to:
+  /// **'No social media today'**
+  String get trialNoSocial;
+
+  /// No description provided for @trialAvoidedFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Do the task you\'re avoiding before anything else'**
+  String get trialAvoidedFirst;
+
+  /// No description provided for @trialEatPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Eat plainly today: no sweets, no snacks'**
+  String get trialEatPlain;
+
+  /// No description provided for @trialWalkWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk 30 minutes, whatever the weather (dress for it)'**
+  String get trialWalkWeather;
+
+  /// No description provided for @trialAwkwardThing.
+  ///
+  /// In en, this message translates to:
+  /// **'Say the awkward thing you\'ve been putting off, kindly'**
+  String get trialAwkwardThing;
+
+  /// No description provided for @trialPractisePoverty.
+  ///
+  /// In en, this message translates to:
+  /// **'Eat simply and dress simply. Ask: is this what I feared? (Seneca)'**
+  String get trialPractisePoverty;
+
+  /// No description provided for @trialPhoneBedroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep with your phone outside the bedroom'**
+  String get trialPhoneBedroom;
+
+  /// No description provided for @trialNoComplaining.
+  ///
+  /// In en, this message translates to:
+  /// **'A full day without complaining. Slip? Start again.'**
+  String get trialNoComplaining;
+
+  /// No description provided for @trialColdFull.
+  ///
+  /// In en, this message translates to:
+  /// **'A full two-minute cold shower'**
+  String get trialColdFull;
+
+  /// No description provided for @trialPhoneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'A day with no browser or social apps (calls and messages are fine)'**
+  String get trialPhoneDay;
+
+  /// No description provided for @trialOneThing.
+  ///
+  /// In en, this message translates to:
+  /// **'A day of doing one thing at a time: no multitasking'**
+  String get trialOneThing;
+
+  /// No description provided for @programThirtyDays.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days of gaman'**
+  String get programThirtyDays;
+
+  /// No description provided for @programThirtyDaysBlurb.
+  ///
+  /// In en, this message translates to:
+  /// **'A month that starts gentle and ends hard, one trial a day.'**
+  String get programThirtyDaysBlurb;
+
+  /// No description provided for @programPhoneFast.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone fast'**
+  String get programPhoneFast;
+
+  /// No description provided for @programPhoneFastBlurb.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks to loosen the phone\'s grip, a little more each day.'**
+  String get programPhoneFastBlurb;
+
+  /// No description provided for @programSenecasMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Seneca\'s three weeks'**
+  String get programSenecasMonth;
+
+  /// No description provided for @programSenecasMonthBlurb.
+  ///
+  /// In en, this message translates to:
+  /// **'Voluntary simplicity: rehearse having less, so you fear it less.'**
+  String get programSenecasMonthBlurb;
+
+  /// No description provided for @partMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'morning'**
+  String get partMorning;
+
+  /// No description provided for @partAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'afternoon'**
+  String get partAfternoon;
+
+  /// No description provided for @partEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'evening'**
+  String get partEvening;
+
+  /// No description provided for @partNight.
+  ///
+  /// In en, this message translates to:
+  /// **'night'**
+  String get partNight;
+
+  /// No description provided for @insightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insightsTitle;
+
+  /// No description provided for @insightsThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get insightsThisWeek;
+
+  /// No description provided for @statUrgesHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Urges held'**
+  String get statUrgesHeld;
+
+  /// No description provided for @statTrialsDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Trials done'**
+  String get statTrialsDone;
+
+  /// No description provided for @statJournalDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal days'**
+  String get statJournalDays;
+
+  /// No description provided for @statFocusSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus sessions'**
+  String get statFocusSessions;
+
+  /// No description provided for @statOf.
+  ///
+  /// In en, this message translates to:
+  /// **'of {total}'**
+  String statOf(int total);
+
+  /// No description provided for @patternsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Endurance patterns'**
+  String get patternsTitle;
+
+  /// No description provided for @patternsTriggers.
+  ///
+  /// In en, this message translates to:
+  /// **'Triggers'**
+  String get patternsTriggers;
+
+  /// No description provided for @patternsTagHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'{held} of {total} held'**
+  String patternsTagHeld(int held, int total);
+
+  /// No description provided for @patternsHardestTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Hardest time: the {part}. Plan for it in your premeditatio.'**
+  String patternsHardestTime(String part);
+
+  /// No description provided for @patternsByLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trials by level'**
+  String get patternsByLevel;
+
+  /// No description provided for @summaryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged yet this week. Start with one small hard thing today.'**
+  String get summaryEmpty;
+
+  /// No description provided for @summaryWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'So far this week you\'ve {list}.'**
+  String summaryWeek(String list);
+
+  /// No description provided for @listSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get listSeparator;
+
+  /// No description provided for @listLastSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get listLastSeparator;
+
+  /// No description provided for @summaryUrges.
+  ///
+  /// In en, this message translates to:
+  /// **'held {held} of {total} urges'**
+  String summaryUrges(int held, int total);
+
+  /// No description provided for @summaryTrials.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{completed 1 trial} other{completed {count} trials}}'**
+  String summaryTrials(int count);
+
+  /// No description provided for @summaryFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{did 1 focus session} other{did {count} focus sessions}}'**
+  String summaryFocus(int count);
+
+  /// No description provided for @summaryMeditation.
+  ///
+  /// In en, this message translates to:
+  /// **'sat for {minutes} minutes'**
+  String summaryMeditation(int minutes);
+
+  /// No description provided for @summaryJournal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{journalled 1 day} other{journalled {count} days}}'**
+  String summaryJournal(int count);
+
+  /// No description provided for @summaryTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{finished 1 task} other{finished {count} tasks}}'**
+  String summaryTasks(int count);
+
+  /// No description provided for @trendUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 practised day, more than last week} other{{days} practised days, more than last week}}'**
+  String trendUp(int days);
+
+  /// No description provided for @trendDown.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 practised day, fewer than last week} other{{days} practised days, fewer than last week}}'**
+  String trendDown(int days);
+
+  /// No description provided for @trendSame.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 practised day, the same as last week} other{{days} practised days, the same as last week}}'**
+  String trendSame(int days);
 }
 
 class _AppLocalizationsDelegate

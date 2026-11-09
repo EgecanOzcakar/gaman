@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gaman/data/models.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:gaman/endurance.dart';
+import 'package:gaman/l10n/app_localizations.dart';
 
 ActivityEvent urge(String tag, bool held, int hour) => ActivityEvent(
     type: ActivityType.urge,
@@ -50,5 +52,20 @@ void main() {
       t('cold_full', 'done'),
       t('unknown', 'done'),
     ]), {1: 1, 2: 0, 3: 1});
+  });
+
+  test('every catalogue id has a translated string (no raw-id fallbacks)', () {
+    final l = lookupAppLocalizations(const Locale('en'));
+    for (final t in trials) {
+      expect(l.trialTitle(t.id), isNot(t.id), reason: t.id);
+    }
+    for (final p in programs) {
+      expect(l.programTitle(p.id), isNot(p.id), reason: p.id);
+      expect(l.programBlurb(p.id), isNotEmpty, reason: p.id);
+    }
+    expect({for (final t in urgeTags) l.urgeTag(t)}, hasLength(urgeTags.length));
+    expect({for (var i = 0; i < urgeGuidanceCount; i++) l.urgeGuidance(i)},
+        hasLength(urgeGuidanceCount));
+    expect(l.joinList(['a', 'b', 'c']), 'a, b and c');
   });
 }

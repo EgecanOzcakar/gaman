@@ -35,12 +35,13 @@ class InsightsScreen extends StatelessWidget {
     final tasksN = log.count(ActivityType.taskDone, thisWeek, tomorrow);
     final premium =
         context.watch<EntitlementService>().has(PremiumFeature.advancedInsights);
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(Insets.lg, Insets.lg, Insets.lg, Insets.xxl),
       children: [
         FadeSlideIn(
-          child: Text('Insights', style: Theme.of(context).textTheme.headlineMedium),
+          child: Text(l10n.insightsTitle, style: Theme.of(context).textTheme.headlineMedium),
         ),
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
@@ -50,7 +51,7 @@ class InsightsScreen extends StatelessWidget {
         const SizedBox(height: Insets.lg),
         FadeSlideIn(
           delay: const Duration(milliseconds: 120),
-          child: Text('This week', style: Theme.of(context).textTheme.titleLarge),
+          child: Text(l10n.insightsThisWeek, style: Theme.of(context).textTheme.titleLarge),
         ),
         const SizedBox(height: Insets.md),
         FadeSlideIn(
@@ -63,10 +64,10 @@ class InsightsScreen extends StatelessWidget {
             crossAxisSpacing: Insets.md,
             childAspectRatio: 1.7,
             children: [
-              _Stat(label: 'Urges held', value: '${urges.held}', unit: 'of ${urges.total}'),
-              _Stat(label: 'Trials done', value: '$trialsDone', unit: ''),
-              _Stat(label: 'Journal days', value: '$journalDays', unit: 'of 7'),
-              _Stat(label: 'Focus sessions', value: '$focusN', unit: ''),
+              _Stat(label: l10n.statUrgesHeld, value: '${urges.held}', unit: l10n.statOf(urges.total)),
+              _Stat(label: l10n.statTrialsDone, value: '$trialsDone', unit: ''),
+              _Stat(label: l10n.statJournalDays, value: '$journalDays', unit: l10n.statOf(7)),
+              _Stat(label: l10n.statFocusSessions, value: '$focusN', unit: ''),
             ],
           ),
         ),
@@ -78,7 +79,7 @@ class InsightsScreen extends StatelessWidget {
               : _PatternsCard(
                   urges: urges,
                   byLevel: trialsByLevel(week),
-                  summary: _summary(urges, trialsDone, focusN, medMin, journalDays, tasksN),
+                  summary: _summary(l10n, urges, trialsDone, focusN, medMin, journalDays, tasksN),
                   trend: _trend(
                     context,
                     thisWeekActive: log.activeDays(thisWeek, tomorrow),
@@ -90,43 +91,34 @@ class InsightsScreen extends StatelessWidget {
     );
   }
 
-  String _summary(UrgeStats urges, int trials, int focusN, int medMin,
-      int journalDays, int tasksN) {
+  String _summary(AppLocalizations l10n, UrgeStats urges, int trials, int focusN,
+      int medMin, int journalDays, int tasksN) {
     final parts = <String>[
-      if (urges.total > 0) 'held ${urges.held} of ${urges.total} urges',
-      if (trials > 0) 'completed $trials trial${trials == 1 ? '' : 's'}',
-      if (focusN > 0) 'did $focusN focus session${focusN == 1 ? '' : 's'}',
-      if (medMin > 0) 'sat for $medMin minutes',
-      if (journalDays > 0) 'journalled $journalDays day${journalDays == 1 ? '' : 's'}',
-      if (tasksN > 0) 'finished $tasksN task${tasksN == 1 ? '' : 's'}',
+      if (urges.total > 0) l10n.summaryUrges(urges.held, urges.total),
+      if (trials > 0) l10n.summaryTrials(trials),
+      if (focusN > 0) l10n.summaryFocus(focusN),
+      if (medMin > 0) l10n.summaryMeditation(medMin),
+      if (journalDays > 0) l10n.summaryJournal(journalDays),
+      if (tasksN > 0) l10n.summaryTasks(tasksN),
     ];
-    if (parts.isEmpty) {
-      return 'Nothing logged yet this week. Start with one small hard thing today.';
-    }
-    return 'So far this week you\'ve ${_join(parts)}.';
-  }
-
-  String _join(List<String> parts) {
-    if (parts.length == 1) return parts.first;
-    return '${parts.sublist(0, parts.length - 1).join(', ')} and ${parts.last}';
+    if (parts.isEmpty) return l10n.summaryEmpty;
+    return l10n.summaryWeek(l10n.joinList(parts));
   }
 
   Widget _trend(BuildContext context,
       {required int thisWeekActive, required int lastWeekActive}) {
+    final l10n = AppLocalizations.of(context);
     final delta = thisWeekActive - lastWeekActive;
     final (icon, text, color) = switch (delta) {
-      > 0 => (Icons.trending_up, 'more than last week', Colors.green),
-      < 0 => (Icons.trending_down, 'fewer than last week', Theme.of(context).colorScheme.error),
-      _ => (Icons.trending_flat, 'the same as last week', Theme.of(context).colorScheme.onSurface),
+      > 0 => (Icons.trending_up, l10n.trendUp(thisWeekActive), Colors.green),
+      < 0 => (Icons.trending_down, l10n.trendDown(thisWeekActive), Theme.of(context).colorScheme.error),
+      _ => (Icons.trending_flat, l10n.trendSame(thisWeekActive), Theme.of(context).colorScheme.onSurface),
     };
     return Row(
       children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: Insets.sm),
-        Expanded(
-          child: Text('$thisWeekActive practised day${thisWeekActive == 1 ? '' : 's'}, $text',
-              style: Theme.of(context).textTheme.bodyMedium),
-        ),
+        Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
       ],
     );
   }
@@ -140,6 +132,7 @@ class _ChainCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final chain = log.chain;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(Insets.lg),
@@ -155,8 +148,10 @@ class _ChainCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     chain.days == 0
-                        ? 'No chain yet. Practise once today.'
-                        : 'day chain${chain.mended > 0 ? ', ${chain.mended} mended' : ''}',
+                        ? l10n.chainCardEmpty
+                        : chain.mended > 0
+                            ? l10n.chainCardDaysMended(chain.mended)
+                            : l10n.chainCardDays,
                     style: text.bodyMedium,
                   ),
                 ),
@@ -166,9 +161,7 @@ class _ChainCard extends StatelessWidget {
             KintsugiChain(marks: log.recentMarks(28)),
             const SizedBox(height: Insets.sm),
             Text(
-              chain.atRisk
-                  ? 'You missed yesterday. Practise today and it\'s mended in gold.'
-                  : 'Never miss twice: a single missed day is mended in gold, not lost.',
+              chain.atRisk ? l10n.chainCardAtRisk : l10n.chainCardExplain,
               style: text.bodySmall,
             ),
           ],
@@ -249,6 +242,7 @@ class _PatternsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final tags = urges.byTag.entries.toList()
       ..sort((a, b) => b.value.total.compareTo(a.value.total));
     return Card(
@@ -257,38 +251,38 @@ class _PatternsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Endurance patterns', style: text.titleMedium),
+            Text(l10n.patternsTitle, style: text.titleMedium),
             const SizedBox(height: Insets.sm),
             Text(summary, style: text.bodyLarge?.copyWith(height: 1.5)),
             const SizedBox(height: Insets.md),
             trend,
             if (tags.isNotEmpty) ...[
               const SizedBox(height: Insets.lg),
-              Text('Triggers', style: text.titleSmall),
+              Text(l10n.patternsTriggers, style: text.titleSmall),
               const SizedBox(height: Insets.xs),
               for (final t in tags.take(4))
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: Insets.xs),
                   child: Row(children: [
-                    Expanded(child: Text(t.key)),
-                    Text('${t.value.held} of ${t.value.total} held'),
+                    Expanded(child: Text(l10n.urgeTag(t.key))),
+                    Text(l10n.patternsTagHeld(t.value.held, t.value.total)),
                   ]),
                 ),
             ],
             if (urges.hardestTime != null) ...[
               const SizedBox(height: Insets.md),
-              Text('Hardest time: the ${urges.hardestTime}. Plan for it in your premeditatio.',
+              Text(l10n.patternsHardestTime(l10n.partOfDayName(urges.hardestTime!)),
                   style: text.bodyMedium),
             ],
             const SizedBox(height: Insets.lg),
-            Text('Trials by level', style: text.titleSmall),
+            Text(l10n.patternsByLevel, style: text.titleSmall),
             const SizedBox(height: Insets.xs),
             Row(children: [
               for (final l in [1, 2, 3])
                 Expanded(
                   child: Column(children: [
                     Text('${byLevel[l] ?? 0}', style: text.headlineSmall),
-                    Text(levelNames[l]!, style: text.bodySmall),
+                    Text(l10n.levelName(l), style: text.bodySmall),
                   ]),
                 ),
             ]),

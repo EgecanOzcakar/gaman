@@ -21,11 +21,11 @@ import 'settings_screen.dart';
 class TodayScreen extends StatelessWidget {
   const TodayScreen({super.key});
 
-  String get _greeting {
+  String _greeting(AppLocalizations l10n) {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return l10n.greetingMorning;
+    if (h < 18) return l10n.greetingAfternoon;
+    return l10n.greetingEvening;
   }
 
   @override
@@ -37,10 +37,11 @@ class TodayScreen extends StatelessWidget {
     final urges = urgeStats(log.onDay(now));
     final trial = log.trialOn(now);
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     final eveningBits = <String>[
-      if (urges.total > 0) '${urges.held} of ${urges.total} urges held',
-      if (trial.id != null) trial.done ? 'trial done' : 'trial still open',
+      if (urges.total > 0) l10n.eveningUrgesHeld(urges.held, urges.total),
+      if (trial.id != null) trial.done ? l10n.eveningTrialDone : l10n.eveningTrialOpen,
     ];
 
     return ListView(
@@ -49,9 +50,9 @@ class TodayScreen extends StatelessWidget {
         FadeSlideIn(
           child: Row(
             children: [
-              Expanded(child: Text(_greeting, style: text.headlineMedium)),
+              Expanded(child: Text(_greeting(l10n), style: text.headlineMedium)),
               IconButton(
-                tooltip: AppLocalizations.of(context).navSettings,
+                tooltip: l10n.navSettings,
                 icon: const Icon(Icons.settings_outlined),
                 onPressed: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const SettingsScreen())),
@@ -75,13 +76,13 @@ class TodayScreen extends StatelessWidget {
         const SizedBox(height: Insets.lg),
         const FadeSlideIn(delay: Duration(milliseconds: 60), child: _QuoteCard()),
         const SizedBox(height: Insets.lg),
-        Text('Today\'s practice', style: text.titleLarge),
+        Text(l10n.todaysPractice, style: text.titleLarge),
         const SizedBox(height: Insets.md),
         if (features.isEnabled('journal')) ...[
           _StepCard(
             icon: Icons.wb_sunny_outlined,
-            title: 'Morning: premeditatio',
-            subtitle: 'What could go wrong today, and how will you meet it?',
+            title: l10n.morningStepTitle,
+            subtitle: l10n.morningStepBody,
             done: log.wroteTemplateOn(now, 'premeditatio'),
             onTap: () => writeFromTemplate(context, templateById('premeditatio')!),
           ),
@@ -96,10 +97,10 @@ class TodayScreen extends StatelessWidget {
           const SizedBox(height: Insets.md),
           _StepCard(
             icon: Icons.nightlight_outlined,
-            title: 'Evening review',
+            title: l10n.eveningStepTitle,
             subtitle: eveningBits.isEmpty
-                ? 'What went well, what could be better, what was left undone.'
-                : 'Today: ${eveningBits.join(' · ')}.',
+                ? l10n.eveningStepBody
+                : l10n.eveningStepToday(eveningBits.join(l10n.summarySeparator)),
             done: log.wroteTemplateOn(now, 'evening'),
             onTap: () => writeFromTemplate(context, templateById('evening')!),
           ),
@@ -132,7 +133,9 @@ class _StepCard extends StatelessWidget {
           title: Text(title),
           subtitle: Text(subtitle),
           trailing: done
-              ? const Icon(Icons.check_circle, color: AppColors.gold, semanticLabel: 'Done')
+              ? Icon(Icons.check_circle,
+                  color: AppColors.gold,
+                  semanticLabel: AppLocalizations.of(context).done)
               : const Icon(Icons.chevron_right),
           onTap: onTap,
         ),
@@ -161,22 +164,23 @@ class _OneTaskCardState extends State<_OneTaskCard> {
   Future<void> _edit(BuildContext context, List<TodoTask> tasks) async {
     final current = _main(tasks);
     final controller = TextEditingController(text: current?.title ?? '');
+    final l10n = AppLocalizations.of(context);
     final title = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('The one task that matters today'),
+        title: Text(l10n.oneTaskDialogTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(hintText: 'Do the hard thing first'),
+          decoration: InputDecoration(hintText: l10n.oneTaskHint),
           onSubmitted: (v) => Navigator.pop(ctx, v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, controller.text),
-              child: const Text('Save')),
+              child: Text(l10n.save)),
         ],
       ),
     );
@@ -214,6 +218,7 @@ class _OneTaskCardState extends State<_OneTaskCard> {
         final tasks = snap.data ?? const <TodoTask>[];
         final main = _main(tasks);
         final hasTask = main != null && main.title.isNotEmpty;
+        final l10n = AppLocalizations.of(context);
         return Card(
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: Insets.md, vertical: Insets.xs),
@@ -223,8 +228,8 @@ class _OneTaskCardState extends State<_OneTaskCard> {
                     onChanged: (_) => _toggle(context, [...tasks], main),
                   )
                 : Icon(Icons.flag_outlined, color: Theme.of(context).colorScheme.primary),
-            title: Text(hasTask ? main.title : 'One task that matters'),
-            subtitle: Text(hasTask ? 'Tap to change' : 'Not set. Tap to choose it.'),
+            title: Text(hasTask ? main.title : l10n.oneTaskEmptyTitle),
+            subtitle: Text(hasTask ? l10n.oneTaskChange : l10n.oneTaskEmptyBody),
             trailing: const Icon(Icons.edit_outlined),
             onTap: () => _edit(context, tasks),
           ),

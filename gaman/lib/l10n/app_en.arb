@@ -125,5 +125,333 @@
         "type": "int"
       }
     }
+  },
+  "greetingMorning": "Good morning",
+  "greetingAfternoon": "Good afternoon",
+  "greetingEvening": "Good evening",
+  "todaysPractice": "Today's practice",
+  "morningStepTitle": "Morning: premeditatio",
+  "morningStepBody": "What could go wrong today, and how will you meet it?",
+  "eveningStepTitle": "Evening review",
+  "eveningStepBody": "What went well, what could be better, what was left undone.",
+  "eveningStepToday": "Today: {summary}.",
+  "@eveningStepToday": {
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "eveningUrgesHeld": "{held} of {total} urges held",
+  "@eveningUrgesHeld": {
+    "placeholders": {
+      "held": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "eveningTrialDone": "trial done",
+  "eveningTrialOpen": "trial still open",
+  "summarySeparator": " · ",
+  "done": "Done",
+  "save": "Save",
+  "oneTaskDialogTitle": "The one task that matters today",
+  "oneTaskHint": "Do the hard thing first",
+  "oneTaskEmptyTitle": "One task that matters",
+  "oneTaskEmptyBody": "Not set. Tap to choose it.",
+  "oneTaskChange": "Tap to change",
+  "chainDays": "{days, plural, =1{1 day} other{{days} days}}",
+  "@chainDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "chainMended": "{count} mended",
+  "@chainMended": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chainAtRisk": "practise today to mend",
+  "chainSemantics": "Last {days} days: {done} practised, {mended} mended",
+  "@chainSemantics": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      },
+      "mended": {
+        "type": "int"
+      }
+    }
+  },
+  "chainCardDays": "day chain",
+  "chainCardDaysMended": "day chain, {count} mended",
+  "@chainCardDaysMended": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chainCardEmpty": "No chain yet. Practise once today.",
+  "chainCardAtRisk": "You missed yesterday. Practise today and it's mended in gold.",
+  "chainCardExplain": "Never miss twice: a single missed day is mended in gold, not lost.",
+  "trialCardTitle": "Today's trial",
+  "trialProgramDay": "Day {day} of {program}",
+  "@trialProgramDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "program": {
+        "type": "String"
+      }
+    }
+  },
+  "trialAccept": "Accept",
+  "trialChooseAnother": "Choose another",
+  "trialEmptyBody": "One small hard thing, chosen on purpose.",
+  "trialChoose": "Choose today's trial",
+  "trialLevelLabel": "{level} trial",
+  "@trialLevelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "trialDoneLabel": "Done. Gaman.",
+  "trialIDidIt": "I did it",
+  "trialChange": "Change",
+  "endureSubtitle": "我慢: bearing what is hard, with patience and dignity.",
+  "urgeButton": "I have an urge",
+  "urgeButtonEmpty": "Ride it out for ten minutes before you decide.",
+  "urgeButtonToday": "Today: {held} of {total} held.",
+  "@urgeButtonToday": {
+    "placeholders": {
+      "held": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "programsTitle": "Programs",
+  "toolsTitle": "Tools for the hard moments",
+  "toolBreathe": "Breathe",
+  "toolBreatheBody": "A short guided sit",
+  "toolSound": "Sound",
+  "toolSoundBody": "Ambient tracks to sit or work with",
+  "programDays": "{days} days",
+  "@programDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "programDayOf": "Day {day} of {days}",
+  "@programDayOf": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "programStop": "Stop",
+  "programCompleted": "Completed",
+  "programClear": "Clear",
+  "programPremium": "Premium",
+  "programStart": "Start",
+  "programSwitch": "Switch to this",
+  "urgePickTitle": "What is pulling at you?",
+  "urgePickBody": "Name it, then give it ten minutes before you decide. Most urges pass on their own.",
+  "urgePassed": "Passed",
+  "urgeAskHeld": "The wave has passed. Did you hold?",
+  "urgeHeld": "I held",
+  "urgeHeldEarly": "It passed. I held",
+  "urgeGaveIn": "I gave in",
+  "urgeHeldSnack": "Gaman. That one is yours.",
+  "urgeGaveInSnack": "Noted, not judged. Next time, ride it a little longer.",
+  "urgeTagPhone": "Phone",
+  "urgeTagFood": "Food",
+  "urgeTagSmoking": "Smoking",
+  "urgeTagDrink": "Drink",
+  "urgeTagAnger": "Anger",
+  "urgeTagQuitting": "Quitting",
+  "urgeTagOther": "Other",
+  "urgeGuidance0": "Notice where you feel it. Name it: \"this is an urge.\"",
+  "urgeGuidance1": "Urges are waves. They rise, peak and fall, usually within minutes.",
+  "urgeGuidance2": "Breathe out longer than you breathe in.",
+  "urgeGuidance3": "\"No one is free who is a slave to the body.\" (Seneca)",
+  "urgeGuidance4": "You don't have to win forever. Just these ten minutes.",
+  "urgeGuidance5": "It is already weaker than when you started.",
+  "levelGentle": "Gentle",
+  "levelFirm": "Firm",
+  "levelHard": "Hard",
+  "trialSafetyNote": "Trials should feel uncomfortable, never harmful. Skip any that don't suit your health and stop if something feels wrong. This isn't medical advice.",
+  "trialColdCaution": "Skip this if you have a heart condition, are pregnant or feel unwell.",
+  "trialPhoneFirstHour": "Keep your phone in another room for the first hour of the day",
+  "trialStairs": "Take the stairs all day",
+  "trialScreenlessMeal": "Eat one meal with no screen",
+  "trialSnackWait": "Wait ten minutes before any snack",
+  "trialNothingLater": "Make your bed and leave no dish for later",
+  "trialColdFinish": "Finish your shower with 30 seconds of cold water",
+  "trialNoSocial": "No social media today",
+  "trialAvoidedFirst": "Do the task you're avoiding before anything else",
+  "trialEatPlain": "Eat plainly today: no sweets, no snacks",
+  "trialWalkWeather": "Walk 30 minutes, whatever the weather (dress for it)",
+  "trialAwkwardThing": "Say the awkward thing you've been putting off, kindly",
+  "trialPractisePoverty": "Eat simply and dress simply. Ask: is this what I feared? (Seneca)",
+  "trialPhoneBedroom": "Sleep with your phone outside the bedroom",
+  "trialNoComplaining": "A full day without complaining. Slip? Start again.",
+  "trialColdFull": "A full two-minute cold shower",
+  "trialPhoneDay": "A day with no browser or social apps (calls and messages are fine)",
+  "trialOneThing": "A day of doing one thing at a time: no multitasking",
+  "programThirtyDays": "30 days of gaman",
+  "programThirtyDaysBlurb": "A month that starts gentle and ends hard, one trial a day.",
+  "programPhoneFast": "The phone fast",
+  "programPhoneFastBlurb": "Two weeks to loosen the phone's grip, a little more each day.",
+  "programSenecasMonth": "Seneca's three weeks",
+  "programSenecasMonthBlurb": "Voluntary simplicity: rehearse having less, so you fear it less.",
+  "partMorning": "morning",
+  "partAfternoon": "afternoon",
+  "partEvening": "evening",
+  "partNight": "night",
+  "insightsTitle": "Insights",
+  "insightsThisWeek": "This week",
+  "statUrgesHeld": "Urges held",
+  "statTrialsDone": "Trials done",
+  "statJournalDays": "Journal days",
+  "statFocusSessions": "Focus sessions",
+  "statOf": "of {total}",
+  "@statOf": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "patternsTitle": "Endurance patterns",
+  "patternsTriggers": "Triggers",
+  "patternsTagHeld": "{held} of {total} held",
+  "@patternsTagHeld": {
+    "placeholders": {
+      "held": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "patternsHardestTime": "Hardest time: the {part}. Plan for it in your premeditatio.",
+  "@patternsHardestTime": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "patternsByLevel": "Trials by level",
+  "summaryEmpty": "Nothing logged yet this week. Start with one small hard thing today.",
+  "summaryWeek": "So far this week you've {list}.",
+  "@summaryWeek": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "listSeparator": ", ",
+  "listLastSeparator": " and ",
+  "summaryUrges": "held {held} of {total} urges",
+  "@summaryUrges": {
+    "placeholders": {
+      "held": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryTrials": "{count, plural, =1{completed 1 trial} other{completed {count} trials}}",
+  "@summaryTrials": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryFocus": "{count, plural, =1{did 1 focus session} other{did {count} focus sessions}}",
+  "@summaryFocus": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryMeditation": "sat for {minutes} minutes",
+  "@summaryMeditation": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryJournal": "{count, plural, =1{journalled 1 day} other{journalled {count} days}}",
+  "@summaryJournal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryTasks": "{count, plural, =1{finished 1 task} other{finished {count} tasks}}",
+  "@summaryTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trendUp": "{days, plural, =1{1 practised day, more than last week} other{{days} practised days, more than last week}}",
+  "@trendUp": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "trendDown": "{days, plural, =1{1 practised day, fewer than last week} other{{days} practised days, fewer than last week}}",
+  "@trendDown": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "trendSame": "{days, plural, =1{1 practised day, the same as last week} other{{days} practised days, the same as last week}}",
+  "@trendSame": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   }
 }
