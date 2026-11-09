@@ -146,14 +146,12 @@ builds have a "pretend Premium" switch in Settings.
 
 ## 10. Asset provenance (confirm before release)
 
-- `assets/audio/*.mp3` (binaural tracks): the source and licence are unknown.
-  Confirm you made them or have a licence, or regenerate them (they're pure
-  sine-wave pairs, e.g. with `sox`).
 - Fonts: EB Garamond, Manrope and a two-glyph subset of Noto Serif JP (for
   我慢) are bundled from Google Fonts under the OFL (licences in
   `assets/google_fonts/`, shown on the in-app licences page).
-- `assets/audio/chime.mp3` is synthesised by `tool/make_chime.py`, so it has
-  no third-party licence.
+- Audio is all made in-house, so there's no third-party licence:
+  `assets/audio/chime.mp3` by `tool/make_chime.py`, and the five binaural
+  tracks by `tool/make_binaural.py` (pure sine pairs around 440 Hz).
 - Quotes: `assets/quotes/stoic_quotes.json` uses only pre-1929 translations
   (George Long; Richard Mott Gummere). Spot-check the wording against the
   public-domain texts (e.g. Project Gutenberg, Wikisource) before release.
