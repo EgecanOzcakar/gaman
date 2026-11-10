@@ -107,7 +107,10 @@ builds have a "pretend Premium" switch in Settings.
 1. Choose `in_app_purchase` or RevenueCat (still open).
 2. Create the products in Play Console and App Store Connect; ids are
    placeholders in `premiumPlans`: `gaman_premium_yearly`,
-   `gaman_premium_monthly`.
+   `gaman_premium_monthly` (auto-renewing subscriptions) and
+   `gaman_premium_lifetime` (a one-time **non-consumable** in-app product,
+   placeholder $49.99). The lifetime purchase must grant the same
+   entitlement as the subscriptions.
 3. Implement the `BILLING HOOK`s: seed `_premium` from active entitlements,
    then `purchase()`/`restore()`. Replace the placeholder prices with
    store-localised ones and flip `billingAvailable`.
@@ -116,16 +119,21 @@ builds have a "pretend Premium" switch in Settings.
 
 ## 8. Icon and splash
 
-Placeholders in `assets/branding/` (they literally say "PLACEHOLDER").
-The generators have already been run once, so `android/`, `ios/` and `web/`
-ship the placeholder art. Replace the three PNGs, then re-run:
-
-```
-dart run flutter_launcher_icons
-dart run flutter_native_splash:create
-```
-
-and commit the regenerated `android/`, `ios/` and `web/` resources.
+- **Icon**: still a placeholder in `assets/branding/` (it literally says
+  "PLACEHOLDER"). Replace `icon_placeholder.png` and
+  `icon_foreground_placeholder.png` with the real mark, then run
+  `dart run flutter_launcher_icons` and commit the regenerated `android/`,
+  `ios/` and `web/` resources.
+- **Splash**: no art needed. The native splash is plain water green
+  (`#5F8F8C`) and the Flutter splash draws the ensō in code
+  (`lib/widgets/enso.dart`), so there's no flash between them. If you later
+  want the mark on the native splash too, add `image:` under
+  `flutter_native_splash` in `pubspec.yaml` and run
+  `dart run flutter_native_splash:create`.
+- **Store art**: `store/screenshots/` (1290×2796) and
+  `store/feature-graphic.png` (1024×500) are generated from the web build by
+  `tool/store_art/make.js` (instructions at the top of the file). Re-run it
+  after UI changes or once the real icon exists.
 
 ## 9. Privacy policy, terms and store labels
 
@@ -138,14 +146,12 @@ and commit the regenerated `android/`, `ios/` and `web/` resources.
 
 ## 10. Asset provenance (confirm before release)
 
-- `assets/images/ulysses-147003_1280.png` (splash background) looks like a
-  Pixabay download (the `-147003_1280` naming). Confirm the source page and that
-  the Pixabay Content License covers use in an app. Otherwise replace it.
-- `assets/audio/*.mp3` (binaural tracks): the source and licence are unknown.
-  Confirm you made them or have a licence, or regenerate them (they're pure
-  sine-wave pairs, e.g. with `sox`).
-- Fonts: EB Garamond and Manrope are bundled from Google Fonts under the OFL
-  (licences in `assets/google_fonts/`, shown on the in-app licences page).
+- Fonts: EB Garamond, Manrope and a two-glyph subset of Noto Serif JP (for
+  我慢) are bundled from Google Fonts under the OFL (licences in
+  `assets/google_fonts/`, shown on the in-app licences page).
+- Audio is all made in-house, so there's no third-party licence:
+  `assets/audio/chime.mp3` by `tool/make_chime.py`, and the five binaural
+  tracks by `tool/make_binaural.py` (pure sine pairs around a 200 Hz carrier).
 - Quotes: `assets/quotes/stoic_quotes.json` uses only pre-1929 translations
   (George Long; Richard Mott Gummere). Spot-check the wording against the
   public-domain texts (e.g. Project Gutenberg, Wikisource) before release.

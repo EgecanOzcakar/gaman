@@ -73,7 +73,9 @@ class TodoTask {
       );
 }
 
-enum ActivityType { meditation, focus, journal, taskDone }
+/// `urge`: meta {tag, held}. `trial`: meta {id, status: 'chosen'|'done'};
+/// a 'chosen' trial is bookkeeping and doesn't count as practice.
+enum ActivityType { meditation, focus, journal, taskDone, urge, trial }
 
 class ActivityEvent {
   final ActivityType type;
@@ -115,6 +117,10 @@ class AppSettings {
   final int? reminderMinute;
   final Set<String> disabledFeatures;
 
+  /// Active program ('' = none) and the day it started (yyyy-mm-dd).
+  final String programId;
+  final String programStartedOn;
+
   const AppSettings({
     this.themeMode = ThemeMode.system,
     this.meditationMinutes = 10,
@@ -126,6 +132,8 @@ class AppSettings {
     this.reminderHour,
     this.reminderMinute,
     this.disabledFeatures = const {},
+    this.programId = '',
+    this.programStartedOn = '',
   });
 
   AppSettings copyWith({
@@ -139,6 +147,8 @@ class AppSettings {
     int? reminderHour,
     int? reminderMinute,
     Set<String>? disabledFeatures,
+    String? programId,
+    String? programStartedOn,
   }) =>
       AppSettings(
         themeMode: themeMode ?? this.themeMode,
@@ -151,6 +161,8 @@ class AppSettings {
         reminderHour: reminderHour ?? this.reminderHour,
         reminderMinute: reminderMinute ?? this.reminderMinute,
         disabledFeatures: disabledFeatures ?? this.disabledFeatures,
+        programId: programId ?? this.programId,
+        programStartedOn: programStartedOn ?? this.programStartedOn,
       );
 
   Map<String, dynamic> toJson() => {
@@ -164,6 +176,8 @@ class AppSettings {
         'reminderHour': reminderHour,
         'reminderMinute': reminderMinute,
         'disabledFeatures': disabledFeatures.toList(),
+        'programId': programId,
+        'programStartedOn': programStartedOn,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) {
@@ -181,6 +195,8 @@ class AppSettings {
       disabledFeatures: ((j['disabledFeatures'] as List?) ?? const [])
           .map((e) => e.toString())
           .toSet(),
+      programId: j['programId'] as String? ?? '',
+      programStartedOn: j['programStartedOn'] as String? ?? '',
     );
   }
 }

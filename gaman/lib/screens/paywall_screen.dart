@@ -45,7 +45,7 @@ class PaywallScreen extends StatelessWidget {
           const SizedBox(height: Insets.sm),
           Text(l10n.paywallBody, style: text.bodyLarge),
           const SizedBox(height: Insets.lg),
-          for (final b in [l10n.paywallPerkInsights, l10n.paywallPerkBeats, l10n.paywallPerkSupport])
+          for (final b in [l10n.paywallPerkInsights, l10n.paywallPerkPrograms, l10n.paywallPerkSupport])
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.check_circle_outline),

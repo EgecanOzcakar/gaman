@@ -37,7 +37,7 @@ void main() async {
   // Fonts ship in assets/google_fonts (OFL); never fetch at runtime.
   GoogleFonts.config.allowRuntimeFetching = false;
   LicenseRegistry.addLicense(() async* {
-    for (final f in ['EBGaramond', 'Manrope']) {
+    for (final f in ['EBGaramond', 'Manrope', 'NotoSerifJP']) {
       yield LicenseEntryWithLineBreaks([f],
           await rootBundle.loadString('assets/google_fonts/OFL-$f.txt'));
     }

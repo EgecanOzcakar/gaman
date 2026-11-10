@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../services/chime.dart';
 import 'package:flutter/services.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import '../providers/activity_log.dart';
 import '../providers/settings_provider.dart';
@@ -19,7 +19,6 @@ class _MeditationScreenState extends State<MeditationScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _breathingController;
   late Animation<double> _breathingAnimation;
-  final AudioPlayer _audioPlayer = AudioPlayer();
   Timer? _timer;
   int _remainingSeconds = 0;
   bool _isPlaying = false;
@@ -62,7 +61,6 @@ class _MeditationScreenState extends State<MeditationScreen>
   void dispose() {
     _breathingController.dispose();
     _timer?.cancel();
-    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -82,6 +80,7 @@ class _MeditationScreenState extends State<MeditationScreen>
           _remainingSeconds--;
         } else {
           _stopTimer();
+          Chime.play(context);
         }
       });
     });

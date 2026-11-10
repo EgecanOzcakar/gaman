@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/persistent_audio_control.dart';
+import 'endure_screen.dart';
 import 'focus_screen.dart';
 import 'insights_screen.dart';
 import 'journal_screen.dart';
-import 'settings_screen.dart';
 import 'today_screen.dart';
 
-/// The app's home after the splash: five tabs plus the persistent audio bar,
+/// The app's home after the splash: five tabs (Settings opens from Today) plus the persistent audio bar,
 /// which now lives here once instead of being stacked into every screen.
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialIndex = 0});
@@ -23,10 +23,10 @@ class _MainShellState extends State<MainShell> {
 
   static const _tabs = [
     TodayScreen(),
+    EndureScreen(),
     JournalScreen(),
     FocusScreen(),
     InsightsScreen(),
-    SettingsScreen(),
   ];
 
   @override
@@ -50,6 +50,10 @@ class _MainShellState extends State<MainShell> {
                   selectedIcon: const Icon(Icons.wb_sunny),
                   label: l10n.navToday),
               NavigationDestination(
+                  icon: const Icon(Icons.terrain_outlined),
+                  selectedIcon: const Icon(Icons.terrain),
+                  label: l10n.navEndure),
+              NavigationDestination(
                   icon: const Icon(Icons.edit_note_outlined),
                   selectedIcon: const Icon(Icons.edit_note),
                   label: l10n.navJournal),
@@ -61,10 +65,6 @@ class _MainShellState extends State<MainShell> {
                   icon: const Icon(Icons.insights_outlined),
                   selectedIcon: const Icon(Icons.insights),
                   label: l10n.navInsights),
-              NavigationDestination(
-                  icon: const Icon(Icons.settings_outlined),
-                  selectedIcon: const Icon(Icons.settings),
-                  label: l10n.navSettings),
             ],
           ),
         ],

@@ -166,6 +166,8 @@ class LocalRepository implements Repository {
     await _prefs.setStringList(
         'disabled_features', s.disabledFeatures.toList());
     await _prefs.setBool('notification_enabled', s.reminderEnabled);
+    await _prefs.setString('program_id', s.programId);
+    await _prefs.setString('program_started_on', s.programStartedOn);
     if (s.reminderHour != null && s.reminderMinute != null) {
       await _prefs.setString(
           'notification_time', '${s.reminderHour}:${s.reminderMinute}');
@@ -204,6 +206,8 @@ class LocalRepository implements Repository {
       reminderMinute: min,
       disabledFeatures:
           (_prefs.getStringList('disabled_features') ?? const []).toSet(),
+      programId: _prefs.getString('program_id') ?? '',
+      programStartedOn: _prefs.getString('program_started_on') ?? '',
     );
   }
 

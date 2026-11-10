@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../data/repository.dart';
 import '../journal_templates.dart';
+import '../providers/activity_log.dart';
 import '../theme/app_theme.dart';
 import '../data/models.dart';
+
+/// Open [template], then save the entry and log it (with its template id, so
+/// Today can tick off the morning and evening practices).
+Future<void> writeFromTemplate(BuildContext context, JournalTemplate template) async {
+  final entry = await Navigator.push<JournalEntry>(
+    context,
+    MaterialPageRoute(builder: (_) => JournalPromptScreen(template: template)),
+  );
+  if (entry == null || !context.mounted) return;
+  final log = context.read<ActivityLog>();
+  await context.read<Repository>().upsertJournalEntry(entry);
+  await log.log(ActivityType.journal, meta: {'template': template.id});
+}
 
 /// Compose a structured journal entry from a [JournalTemplate]. Pops with the
 /// finished [JournalEntry], or null if cancelled.

@@ -29,7 +29,7 @@ void main() {
   test('debug toggle unlocks every premium feature', () {
     final e = EntitlementService()..setDebugPremium(true);
     expect(e.has(PremiumFeature.advancedInsights), isTrue);
-    expect(e.has(PremiumFeature.extraBeats), isTrue);
+    expect(e.has(PremiumFeature.programs), isTrue);
   });
 
   Future<void> pumpInsights(WidgetTester t, EntitlementService e) async {
@@ -60,6 +60,7 @@ void main() {
   testWidgets('premium users get the weekly review', (t) async {
     await pumpInsights(t, EntitlementService(premium: true));
     expect(find.byIcon(Icons.lock_outline), findsNothing);
+    expect(find.text('Endurance patterns'), findsOneWidget);
     expect(find.textContaining('Nothing logged yet'), findsOneWidget);
   });
 }

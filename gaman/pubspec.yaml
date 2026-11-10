@@ -86,7 +86,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/
     - assets/audio/
     - assets/quotes/
     - assets/google_fonts/
@@ -97,18 +96,15 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
-  # Commenting out fonts section until we have the font files
-  # fonts:
-  #   - family: Poppins
-  #     fonts:
-  #       - asset: assets/fonts/Poppins-Regular.ttf
-  #       - asset: assets/fonts/Poppins-Medium.ttf
-  #         weight: 500
-  #       - asset: assets/fonts/Poppins-SemiBold.ttf
-  #         weight: 600
-  #       - asset: assets/fonts/Poppins-Bold.ttf
-  #         weight: 700
-  #
+  # Only the glyphs 我慢 from Noto Serif JP Medium (OFL), ~3 KB, so the
+  # kanji render the same everywhere instead of falling back to whatever CJK
+  # font the device has. Re-subset with the Google Fonts css2 `text=` param
+  # if more Japanese text is added.
+  fonts:
+    - family: GamanKanji
+      fonts:
+        - asset: assets/google_fonts/GamanKanji-NotoSerifJP-Medium.ttf
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
@@ -127,11 +123,12 @@ flutter_launcher_icons:
     generate: true
     image_path: assets/branding/icon_placeholder.png
 
+# Colour-only native splash in the Flutter splash's water colour, so launch
+# hands over with no flash; the Flutter splash then draws the ensō. Add an
+# `image:` here once real brand art exists.
 flutter_native_splash:
-  color: "#ECEDE8"
-  image: assets/branding/splash_placeholder.png
-  color_dark: "#131C1C"
+  color: "#5F8F8C"
+  color_dark: "#5F8F8C"
   android_12:
-    color: "#ECEDE8"
-    color_dark: "#131C1C"
-    image: assets/branding/splash_placeholder.png
+    color: "#5F8F8C"
+    color_dark: "#5F8F8C"

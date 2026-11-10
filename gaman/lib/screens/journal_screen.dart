@@ -78,16 +78,8 @@ class _JournalScreenState extends State<JournalScreen> {
     }
   }
 
-  Future<void> _addFromPrompt(JournalTemplate template) async {
-    final entry = await Navigator.push<JournalEntry>(
-      context,
-      MaterialPageRoute(
-          builder: (_) => JournalPromptScreen(template: template)),
-    );
-    if (entry == null) return;
-    if (mounted) context.read<ActivityLog>().log(ActivityType.journal);
-    await context.read<Repository>().upsertJournalEntry(entry);
-  }
+  Future<void> _addFromPrompt(JournalTemplate template) =>
+      writeFromTemplate(context, template);
 
   Future<void> _deleteEntry(JournalEntry entry) =>
       context.read<Repository>().deleteJournalEntry(entry.id);

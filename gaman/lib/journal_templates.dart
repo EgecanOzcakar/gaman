@@ -21,6 +21,13 @@ class JournalTemplate {
 
 const journalTemplates = <JournalTemplate>[
   JournalTemplate(
+    id: 'premeditatio',
+    title: 'Morning premeditatio',
+    blurb: 'Rehearse the day\'s difficulties so they don\'t catch you off guard. (Seneca)',
+    icon: Icons.wb_sunny_outlined,
+    fields: ['What could go wrong today?', 'How will I meet it?', 'What here is in my control?'],
+  ),
+  JournalTemplate(
     id: 'gratitude',
     title: 'Three good things',
     blurb: 'Note three things that went well today and why. (Seligman)',
